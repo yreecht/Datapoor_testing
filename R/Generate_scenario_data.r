@@ -2,7 +2,6 @@
 ## Main function to generate data (the OM)
 Generate_scenario_data <- function(Sim_Settings, seed = 123, parallel = FALSE){
 
-  set.seed(seed)
   ## generate mvt matrix of an animal from a cell to the other
 	Mvt_matrix <- function(Pop_param, Depth_eff, Dist_eff, Lat_eff, Depth_func, Dist_func="Exp", Lat_func, x,y,data.bathym){
 		Mvt_mat <- matrix(0,(length(x)*length(y)),(length(x)*length(y)))
@@ -62,6 +61,7 @@ Generate_scenario_data <- function(Sim_Settings, seed = 123, parallel = FALSE){
 
 
 	#### Set the bathymetry field
+	set.seed(seed)
 	model_bathym <- RMgauss(var=Sim_Settings$SD_O^2, scale=Sim_Settings$SpatialScale)
 	map_grid <- expand.grid(X=Sim_Settings$Range_X, Y=Sim_Settings$Range_Y)
 	Bathym <- RFsimulate(model_bathym, x=map_grid)
@@ -72,9 +72,9 @@ Generate_scenario_data <- function(Sim_Settings, seed = 123, parallel = FALSE){
 	#### Set the pop mvt param
 	Par_mvt_adult <- lapply(1:12, function(x)
 	  rbind(Sim_Settings$Fish_dist_par1, Sim_Settings$Fish_dist_par2, Sim_Settings$Fish_depth_par1[x,], Sim_Settings$Fish_depth_par2[x,], Sim_Settings$Fish_range_par1, Sim_Settings$Fish_range_par2));
-	if (parallel == FALSE) Mvt_mat_adult <- lapply(1:12, function(x)
+	if (Sim_Settings$parallel == FALSE) Mvt_mat_adult <- lapply(1:12, function(x)
 	  lapply(1:Sim_Settings$n_species, function(xxx) Mvt_matrix(Pop_param=Par_mvt_adult[[x]][,xxx], Depth_eff="T", Dist_eff="T", Lat_eff="T", Dist_func=Sim_Settings$func_mvt_dist[xxx], Depth_func=Sim_Settings$func_mvt_depth[xxx], Lat_func=Sim_Settings$func_mvt_lat[xxx], x=Sim_Settings$Range_X, y=Sim_Settings$Range_Y, data.bathym)))
-	if (parallel == TRUE) {
+	if (Sim_Settings$parallel == TRUE) {
 	  cl <- makeCluster(getOption("cl.cores", 4))
 	  clusterExport(cl, varlist=list("Sim_Settings","Mvt_upd1","Mvt_matrix","Par_mvt_adult","data.bathym"))
 	  Mvt_mat_adult <- parLapply(cl, 1:12, function(x)
@@ -95,6 +95,7 @@ Generate_scenario_data <- function(Sim_Settings, seed = 123, parallel = FALSE){
 		fields::image.plot(Sim_Settings$Range_X, Sim_Settings$Range_Y, matrix(Pop_adult[,2],length(Sim_Settings$Range_X),length(Sim_Settings$Range_Y)))
 		fields::image.plot(Sim_Settings$Range_X, Sim_Settings$Range_Y, matrix(Pop_adult[,3],length(Sim_Settings$Range_X),length(Sim_Settings$Range_Y)))
 		fields::image.plot(Sim_Settings$Range_X, Sim_Settings$Range_Y, matrix(Pop_adult[,4],length(Sim_Settings$Range_X),length(Sim_Settings$Range_Y)))
+		fields::image.plot(Sim_Settings$Range_X, Sim_Settings$Range_Y, matrix(Pop_adult[,5],length(Sim_Settings$Range_X),length(Sim_Settings$Range_Y)))
 	}
 
 	Biomass <- array(NA, dim=c(Sim_Settings$n_years, 12, nrow(data.bathym), Sim_Settings$n_species))
@@ -122,16 +123,17 @@ Generate_scenario_data <- function(Sim_Settings, seed = 123, parallel = FALSE){
 	Catch_area_year_ind <- c();
 
 	# Define historic fishing regions for each vessel randomly
-	nb_regions <- sample(c(1:Sim_Settings$Nregion), Sim_Settings$Nvessels, replace=T)
-	which_regions <- sapply(nb_regions, function(x) sample(1:Sim_Settings$Nregion, x, replace=F))
-	which_regions <- do.call(rbind, which_regions)
-	areas <- cut(1:map.size, Sim_Settings$Nregion, labels=FALSE)
+	# nb_regions <- sample(c(1:sum(Sim_Settings$Nregion)), Sim_Settings$Nvessels, replace=T)
+	# which_regions <- sapply(nb_regions, function(x) sample(1:Sim_Settings$Nregion, x, replace=F))
+	which_regions <- t(sapply(rep(sum(Sim_Settings$Nregion),Sim_Settings$Nvessels), function(x) sample(1:sum(Sim_Settings$Nregion), x, replace=TRUE)))
+	# which_regions <- do.call(rbind, which_regions)
+	areas <- equal_partition( expand.grid(X = Sim2$Range_X, Y = Sim2$Range_Y), Sim_Settings$Nregion[1], Sim_Settings$Nregion[2])$area
 
 	#### Updating the population and generate catch data according to the above specifications
 	for (iyear in 1:Sim_Settings$n_years){
 	  for (month in 1:12){
 
-	    set.seed(seed + iyear)
+	    set.seed(seed + iyear*12 + month)
   		### do vessel change their fishing preference over the year (this ONLY controls vessel concentration factor)
 	    Preference=1
 	    if(Sim_Settings$Changing_preference==TRUE) Preference <- 2-exp(-0.1*iyear)
@@ -148,10 +150,13 @@ Generate_scenario_data <- function(Sim_Settings, seed = 123, parallel = FALSE){
   			qq <- catchability
   		} else { qq <- Sim_Settings$qq_original }
 
-  		### Continuous catch equation
+  		### Continuous catch equation - calculating the expected revenue
   		CPUE_tot[iyear,month,] <- apply(Biomass[iyear,month,,]*matrix((1-exp(-qq)), nrow=map.size, ncol=Sim_Settings$n_species, byrow=T) * matrix(Sim_Settings$price_fish[iyear,], nrow=map.size, ncol=Sim_Settings$n_species, byrow=T),1,sum)
 
-  		### Distribute the total effort according to the above predicted CPUE
+  		### If a site is not worth going (expected revenue is negative)
+  		CPUE_tot[iyear,month,][which(CPUE_tot[iyear,month,] < 0 )]<- 0
+
+  		### Distribute the total effort according to the above expected revenue
   		p <- CPUE_tot[iyear,month,]^Preference/sum(CPUE_tot[iyear,month,]^Preference);min(p);max(p)
   		Effort_area_year[iyear,month,] <- rmultinom(1, size=Effort[iyear,], p=p)
 
@@ -170,6 +175,12 @@ Generate_scenario_data <- function(Sim_Settings, seed = 123, parallel = FALSE){
   		  # if(Sim_Settings$do.tweedie==TRUE) rand.vessel <- matrix(sapply(1:Sim_Settings$n_species, function(x) rtweedie_new(n=Effort_area_year[iyear,month,xyz], mu= qq_vessel[which.vessel.fished,x], power=Sim_Settings$xi[x], phi=Sim_Settings$phi[x])),ncol=Sim_Settings$n_species)
   		  if(Sim_Settings$do.tweedie==FALSE) rand.vessel <- matrix(sapply(1:Sim_Settings$n_species, function(x) qq_vessel[which.vessel.fished,x]),ncol=Sim_Settings$n_species)
   			catch_area_vessel <- sapply(1:Sim_Settings$n_species, function(Y) { hum <- Biomass[iyear,month,xyz,Y]*(1-exp(-sum(rand.vessel[,Y]))); ifelse(hum==0, catch_area_vessel <- rep(0, Effort_area_year[iyear,month,xyz]), catch_area_vessel <- hum*rand.vessel[,Y]/sum(rand.vessel[,Y])); return(catch_area_vessel)})
+  			# now truncate value when necessary
+  			if (any(Sim_Settings$catch_trunc == 1)) {
+  			  to_trunc <- which(Sim_Settings$catch_trunc == 1)
+  			  if (length(catch_area_vessel) == Sim_Settings$n_species)  catch_area_vessel[to_trunc ] <- trunc(catch_area_vessel[to_trunc ])
+  			  if (length(catch_area_vessel) > Sim_Settings$n_species)  catch_area_vessel[,to_trunc ] <- trunc(catch_area_vessel[,to_trunc ])
+  			}
   			catch_area_vessel <- data.frame(iyear, month, areas[xyz], matrix(rep(c(data.bathym[xyz,-1]), each= Effort_area_year[iyear,month,xyz]),nrow= Effort_area_year[iyear,month,xyz]), which.vessel.fished, matrix(catch_area_vessel,ncol=Sim_Settings$n_species));
   			catch_area_vessel <- matrix(sapply( catch_area_vessel, FUN=as.numeric ), nrow=nrow(catch_area_vessel))
   			colnames(catch_area_vessel) <- c("year", "month", "fishing_district", "X", "Y", "depth", "vessel", paste0("Sp", 1:Sim_Settings$n_species))
@@ -185,13 +196,13 @@ Generate_scenario_data <- function(Sim_Settings, seed = 123, parallel = FALSE){
   		if (month < 12){
     		temp <- (Biomass[iyear,month,,]+Sim_Settings$r*Biomass[iyear,month,,]*(1-Biomass[iyear,month,,]/Biomass[1,1,,])-Catch_area_year[iyear,month,,])
     		temp <- apply(temp,2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
-    		temp <- sapply(1:Sim_Settings$n_species, function(x) {if (month == Sim_Settings$sigma_p_timing[x]) out <- sapply(seq_along(temp[,x]), function(y) rlnorm(1, log(temp[y,x])- Sim_Settings$sigma_p[x]^2/2, Sim_Settings$sigma_p[x])) else temp[,x]})
+    		temp <- sapply(1:Sim_Settings$n_species, function(x) {if (month %in% Sim_Settings$sigma_p_timing[x]) out <- sapply(seq_along(temp[,x]), function(y) rlnorm(1, log(temp[y,x])- Sim_Settings$sigma_p[x]^2/2, Sim_Settings$sigma_p[x])) else temp[,x]})
     		Biomass[iyear,month+1,,] <- apply(temp,2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
   		}
   		if (month == 12 & iyear < Sim_Settings$n_years){
     		temp <- Biomass[iyear,month,,]+Sim_Settings$r*Biomass[iyear,month,,]*(1-Biomass[iyear,month,,]/Biomass[1,1,,])-Catch_area_year[iyear,month,,]
     		temp <- apply(temp,2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
-    		temp <- sapply(1:Sim_Settings$n_species, function(x) {if (month == Sim_Settings$sigma_p_timing[x]) out <- sapply(seq_along(temp[,x]), function(y) rlnorm(1, log(temp[y,x])- Sim_Settings$sigma_p[x]^2/2, Sim_Settings$sigma_p[x])) else temp[,x]})
+    		temp <- sapply(1:Sim_Settings$n_species, function(x) {if (month %in% Sim_Settings$sigma_p_timing[x]) out <- sapply(seq_along(temp[,x]), function(y) rlnorm(1, log(temp[y,x])- Sim_Settings$sigma_p[x]^2/2, Sim_Settings$sigma_p[x])) else temp[,x]})
     		Biomass[iyear+1,1,,] <- apply(temp,2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
   		}
 

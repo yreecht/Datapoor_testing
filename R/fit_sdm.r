@@ -13,6 +13,7 @@ fit_sdm <- function(data, conf) {
 
 	### model to use for the computation
   version <- paste0(getwd(), "/src/mult_species"); dllversion = "mult_species"
+  version <- paste0(getwd(), "/src/mult_species_targeting"); dllversion = "mult_species_targeting"
 
   dyn.load(dynlib(version))
   dyn.unload(dynlib(version))

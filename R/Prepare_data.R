@@ -155,6 +155,7 @@ Prepare_data = function(data, conf, Pred_data) {
     logKappa            = rep(0.1,Nsize),
     logTauO             = rep(0.1, Nsize),
     logTauE             = rep(0.1,Nsize),
+    Species_target      = rep(1,Nspecies),
     L_val_spatial       = vals,
     L_val_target        = vals,
     L_val_sp            = rnorm(Nspecies*(Nspecies-1)/2) ,
