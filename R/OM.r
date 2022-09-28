@@ -31,74 +31,74 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 	### Habitat (depth) parameters. Very important as it controls how species are distributed in space, thus affects both
 	### the population dynamics and the vessel dynamics
-	  Range_X = 1:30,           # the x-axis extent. the bigger, the more complex topography you can get at the cost of simulation time
-	  Range_Y = 1:30,           # the y-axis extent. the bigger, the more complex topography you can get at the cost of simulation time
+	  Range_X = 1:40,           # the x-axis extent. the bigger, the more complex topography you can get at the cost of simulation time
+	  Range_Y = 1:40,           # the y-axis extent. the bigger, the more complex topography you can get at the cost of simulation time
 	  SD_O = 100,						    # SD of depth observation in space. the bigger, the more variable is the depth
 	  SpatialScale = 3,					# the spatial correlation range. The bigger, the more correlated are depth in space (patchy if small). N.B: Absolute value of high/low depends on the extent of x-axis and y-axis
 	  year.depth.restriction = 1000,	# If MPA, then years when MPA implemented (default > n_years)
 	  depth.restriction = c(50,150),	# location of MPA
 
 	### Species parameters
-		n_species  = 5,
-		price_fish = matrix(rep(c(1.5,1,-1,2,0),15), ncol=5, byrow=T),   # price per species across time (roughly in Us west coast)
-		# price_fish = matrix(rep(c(1,1,-2,1,0),15), ncol=5, byrow=T),   # random
+		n_species  = 4,
+		# price_fish = matrix(rep(c(1.5,1,-1,2,0),15), ncol=5, byrow=T),   # price per species across time (roughly in Us west coast)
+		price_fish = matrix(rep(c(1,1,-10,0),15), ncol=4, byrow=T),   # random
 
 		## Fish habitat preference/movement control parameters
-			func_mvt_dist = c("Exp", "Exp", "Exp", "Exp", "Exp"),					# shape of mvt p_function
-			func_mvt_depth = c("Lognorm", "Lognorm", "Lognorm", "Lognorm", "Lognorm"),	# shape of depth preference p_function (choice of Normal, Exp, Lognormal, Uniform)
-			func_mvt_lat = c("Unif", "Unif", "Unif", "Unif", "Unif"),					# shape of range preference p_function (choice of Normal, Exp, Lognormal, Uniform)
+			func_mvt_dist = c("Exp", "Exp", "Exp", "Exp"),					# shape of mvt p_function
+			func_mvt_depth = c("Lognorm", "Lognorm", "Lognorm", "Lognorm"),	# shape of depth preference p_function (choice of Normal, Exp, Lognormal, Uniform)
+			func_mvt_lat = c("Unif", "Unif", "Unif", "Unif"),					# shape of range preference p_function (choice of Normal, Exp, Lognormal, Uniform)
 
-			Fish_dist_par1 = c(rep(3, 4), 10),							# mvt distance mean - their mobility within time step
-			Fish_dist_par2 = rep(0, 5), 										# mvt distance (not used)
-			Fish_depth_par1 = matrix(c(250, 500, 150, 300, 150, # depth preference mean per month 1
-			                           250, 500, 150, 300, 150, # month2
-			                           220, 500, 150, 300, 150, # month3
-			                           220, 500, 150, 300, 150, # month4
-			                           220, 500, 150, 300, 150, # month5
-			                           220, 500, 150, 300, 150, # month6
-			                           220, 500, 150, 300, 150, # month7
-			                           220, 500, 150, 300, 150, # month8
-			                           220, 500, 150, 300, 150, # month9
-			                           220, 500, 150, 300, 150, # month10
-			                           220, 500, 150, 300, 150, # month11
-			                           250, 500, 150, 300, 150),# month12
-			                         nrow=12, ncol=5, byrow=T),
-	    Fish_depth_par2 = matrix(c(1, 0.5, 0.5, 1, 1, # depth preference sd log scale per month 1
-	                               1, 0.5, 0.5, 1, 1, # month2
-	                               1, 0.5, 0.5, 1, 1, # month3
-	                               1, 0.5, 0.5, 1, 1, # month4
-	                               1, 0.5, 0.5, 1, 1, # month5
-	                               1, 0.5, 0.5, 1, 1, # month6
-	                               1, 0.5, 0.5, 1, 1, # month7
-	                               1, 0.5, 0.5, 1, 1, # month8
-	                               1, 0.5, 0.5, 1, 1, # month9
-	                               1, 0.5, 0.5, 1, 1, # month10
-	                               1, 0.5, 0.5, 1, 1, # month11
-	                               1, 0.5, 0.5, 1, 1),# month12
-	                             nrow=12, ncol=5, byrow=T),
-			Fish_range_par1 = rep(0, 5),                    # X-axis range min
-			Fish_range_par2 = rep(50,5),                    # X axis range max
+			Fish_dist_par1 = c(rep(3, 3), 10),							# mvt distance mean - their mobility within time step
+			Fish_dist_par2 = rep(0, 4), 										# mvt distance (not used)
+			Fish_depth_par1 = matrix(c(250, 500, 300, 150, # depth preference mean per month 1
+			                           250, 500, 300, 150, # month2
+			                           220, 500, 300, 150, # month3
+			                           220, 500, 300, 150, # month4
+			                           220, 500, 300, 150, # month5
+			                           220, 500, 300, 150, # month6
+			                           220, 500, 300, 150, # month7
+			                           220, 500, 300, 150, # month8
+			                           220, 500, 300, 150, # month9
+			                           220, 500, 300, 150, # month10
+			                           220, 500, 300, 150, # month11
+			                           250, 500, 300, 150),# month12
+			                         nrow=12, ncol=4, byrow=T),
+	    Fish_depth_par2 = matrix(c(1, 0.5, 0.5, 1, # depth preference sd log scale per month 1
+	                               1, 0.5, 0.5, 1, # month2
+	                               1, 0.5, 0.5, 1, # month3
+	                               1, 0.5, 0.5, 1, # month4
+	                               1, 0.5, 0.5, 1, # month5
+	                               1, 0.5, 0.5, 1, # month6
+	                               1, 0.5, 0.5, 1, # month7
+	                               1, 0.5, 0.5, 1, # month8
+	                               1, 0.5, 0.5, 1, # month9
+	                               1, 0.5, 0.5, 1, # month10
+	                               1, 0.5, 0.5, 1, # month11
+	                               1, 0.5, 0.5, 1),# month12
+	                             nrow=12, ncol=4, byrow=T),
+			Fish_range_par1 = rep(0, 4),                    # X-axis range min
+			Fish_range_par2 = rep(50,4),                    # X axis range max
 
 		## Species Schaefer pop dyn parameters
-			B0 = c(50000,820000,36000,540000,200000)*1000,	# based on petrale, dover, darkblotched, sablefish, maybe bird/marine mammal
-			r = c(0.22, 0.17, 0.08, 0.08, 0.15)/12,         # based on petrale, dover, darkblotched, sablefish (mt)
-			sigma_p= c(0.4, 0.4, 0.4, 0.4, 0.4),            # log-normal process error = recruitment to fishery
-			sigma_p_timing= c(9, 9, 9, 9, 9),               # when does recruitment happen?
+			B0 = c(10000,10000,10000,10000)*1000,	# based on petrale, dover, darkblotched, sablefish, maybe bird/marine mammal
+			r = c(0.22, 0.17, 0.08, 0.15)/12,         # based on petrale, dover, darkblotched, sablefish (mt)
+			sigma_p= c(0.4, 0.4, 0.4, 0.4),            # log-normal process error = recruitment to fishery
+			sigma_p_timing= c(9, 9, 9, 9),               # when does recruitment happen?
     	fish.mvt = TRUE,				                        # whether animals redistribute annually based on habitat preference
 
 	### Parameters controlling the vessel dynamics
 		Nregion = c(2,2),         # nb of fishing regions for the fishermen (equal cut of grid along X and Y)
 	  Nvessels = 50,					  # nb vessels
-		Tot_effort = 3000,				# end year nb of effort
+		Tot_effort = 2000,				# end year nb of effort
 		CV_effort = 0.2, 					# CV of effort around the yearly mean effort
-		qq_original = c(0.02,0.02,0.02,0.02,1e-5),			  # the average catchability coef by species for ALL vessels (does not mean anything. just a scaler)
-		catch_trunc = c(0,0,0,0,1),			  # truncate value if 1 otherwise keep continuous
+		qq_original = c(0.05,0.05,0.05,1e-5),			  # the average catchability coef by species for ALL vessels (does not mean anything. just a scaler)
+		catch_trunc = c(0,0,0,1),			  # truncate value if 1 otherwise keep continuous
 		CV_vessel = 0.0001,					# the between vessel variability in mean catchability
 		vessel_seeds = 10,        # this creates heterogeneity in the sampled vessels
 	  Effort_alloc_month = c(5,4,3,2,1,1,1,2,3,4,5,5),  # it is rescaled to sum to 1
 	  do.tweedie = FALSE,				# include observation error in vessel catchability
-		xi = c(1.7,1.7,1.2,1.6,1.5),  # power of the tweedie distribution. reduce this to have more 0s. ==0 or >0
-	  phi = c(0.2,0.2,0.2,0.2,0.2), # the scaler of the tweedie distribution
+		xi = c(1.7,1.7,1.2,1.5),  # power of the tweedie distribution. reduce this to have more 0s. ==0 or >0
+	  phi = c(0.2,0.2,0.2,0.2), # the scaler of the tweedie distribution
 	  # xi = c(0,0,0,0,0),  # power of the tweedie distribution. reduce this to have more 0s. ==0 or >0
 		# phi = c(0.0001,0.0001,0.0001,0.0001,0.0001), # the scaler of the tweedie distribution
 		Preference = 1, 					# controls how effort concentrate into areas. The higher, the more concentrated is the effort
@@ -113,7 +113,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
     start_year = 5,
 
 	### Other OM control features
-		plotting = FALSE,
+		plotting = TRUE,
 		parallel = FALSE,
 		Interactive = FALSE
 	)
@@ -123,12 +123,12 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	# Sim2$Fish_depth_par1 = c(120, 250, 150, 500) # bycatch species has similar distribution as another species
 	# Sim_Settings3$Fish_depth_par1 = c(120, 250, 450, 200) # bycatch species is distributed deeper than the main target
 	Sim2 <- Sim1
-	Sim2$SD_O = 200
-	Sim2$SpatialScale = 10
-	Sim2$sigma_p= c(1, 1, 1, 1, 0.5)
+	Sim2$SD_O = 150
+	Sim2$SpatialScale = 25
+	Sim2$sigma_p= c(1, 1, 1, 0.5)
 	Sim2$CV_vessel= 0.1
 	system.time(
-	  Data <- Generate_scenario_data(Sim2, seed=34)
+	  Data <- Generate_scenario_data(Sim2, seed_input=12)
   )
 
 	# Sim1$Fish_depth_par1 = c(120, 250, 150, 500)
@@ -154,7 +154,6 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	lines(1:Sim2$n_years, Average_monthly_biomass[,1,2]/Average_monthly_biomass[1,1,2], col = "red")
 	lines(1:Sim2$n_years, Average_monthly_biomass[,1,3]/Average_monthly_biomass[1,1,3], col = "blue")
 	lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,4], col = "green")
-	lines(1:Sim2$n_years, Average_monthly_biomass[,1,5]/Average_monthly_biomass[1,1,5], col = "purple")
 
   true_index <- apply(Average_monthly_biomass[,1,], 2, function(x) x/x[1]) %>% as.data.frame()
   colnames(true_index) <- paste0("Sp", 1:Sim2$n_species)
@@ -162,12 +161,12 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 #### Perform the sample selection
   Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = Sim2$samp_prob, unit=Sim2$samp_unit, seed=Sim2$samp_seed, months = c(11:12))
-  Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = 0.1, unit=Sim2$samp_unit, seed=2, months = c(11:12))
+  Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = 0.5, unit=Sim2$samp_unit, seed=2, months = c(11:12))
 
   Year_adj <- 1   # if the data is taken towards the end of the year, add the year adjustement factor
 
-  nb_x = 3
-  nb_y = 3
+  nb_x = 2
+  nb_y = 2
 
   Final_data <- equal_partition(Final_data, nb_x, nb_y)
   Final_data$depth_scl <- scale(Final_data$depth)
@@ -187,7 +186,6 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   ggplot(Final_data_df %>% filter(Species == "Sp2"), aes(x=CPUE_trunc)) + geom_histogram(bins=100) + theme_bw()
   ggplot(Final_data_df %>% filter(Species == "Sp3"), aes(x=CPUE_trunc)) + geom_histogram(bins=100) + theme_bw()
   ggplot(Final_data_df %>% filter(Species == "Sp4"), aes(x=CPUE_trunc)) + geom_histogram(bins=100) + theme_bw()
-  ggplot(Final_data_df %>% filter(Species == "Sp5"), aes(x=CPUE_trunc)) + geom_histogram(bins=100) + theme_bw()
   plot_fishing(Final_data, years = seq(1, Sim2$n_years, by=5))
 
 
@@ -277,8 +275,13 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 ####### glmmTMB
   library(glmmTMB)
   library(splines)
-  lm1 <- glmmTMB::glmmTMB(CPUE_trunc ~ 0 + as.factor(year)  + as.factor(area) + ns(depth_scl) + (1|vessel_fct), #+ (1|year_area_fct)
+  if (Which_sp != "Sp4") lm1 <- glmmTMB::glmmTMB(CPUE_trunc ~ 0 + as.factor(year) + as.factor(area) + ns(depth_scl) + (1|vessel_fct), #+ (1|year_area_fct)
                           data=Final_data_bycatch, family = tweedie(link = "log"))
+  if (Which_sp == "Sp4") lm1 <- glmmTMB::glmmTMB(CPUE_trunc ~ 0 + as.factor(year) + as.factor(area) + ns(depth_scl) + (1|vessel_fct), #+ (1|year_area_fct)
+                          data=Final_data_bycatch, family = compois(link = "log"))
+  if (Which_sp == "Sp4") lm1 <- glmmTMB::glmmTMB(CPUE_trunc ~ as.factor(year) + ns(depth_scl) + (1|vessel_fct), #+ (1|year_area_fct)
+                          data=Final_data_bycatch, family = nbinom2(link = "log"))
+
   sim <- DHARMa::simulateResiduals(lm1)
   plot(sim)
   predicted <- predict(lm1, newdata = qcs_grid, type="response", se.fit=F)
@@ -309,10 +312,10 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   ####### Spatial model: sdmTMB to the data
   library(sdmTMB)
   mesh <- make_mesh(Final_data_bycatch, xy_cols = c("X", "Y"), cutoff = 5)
-  # plot(mesh)
+  plot(mesh)
 
   fit <- sdmTMB(CPUE_trunc ~ 0 + as.factor(year) + s(depth_scl, k=3) ,
-                data = Final_data_bycatch, time = "year", family = tweedie(link="log"), mesh = mesh)
+                data = Final_data_bycatch, spatial = "on", spatiotemporal = "iid", time = "year", family = tweedie(link="log"), mesh = mesh)
   fit
   res_test <- residuals(fit)
   qqnorm(res_test);qqline(res_test)
@@ -339,13 +342,13 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   # prepare model configuration file
   conf <- list(
     model_formula      = formula(yy ~ year_fct + s(depth, k=3) + as.factor(area) ), #(1|vessel_fct)),  # this works
-    spatial_model      = 0L,    # 0 = no, non-spatial model, 1 = yes, make it a spatial model
-    include_st         = 0L,    # include the spatio-temporal component? 0 = no, make a simple spatial model with only the average spatial field, 1: yes, st follows IID, 2: yes, st follows AR1
+    spatial_model      = 1L,    # 0 = no, non-spatial model, 1 = yes, make it a spatial model
+    include_st         = 1L,    # include the spatio-temporal component? 0 = no, make a simple spatial model with only the average spatial field, 1: yes, st follows IID, 2: yes, st follows AR1
     barrier            = 0L,    # using a barrier model?
     do_spatialDFA      = 1L,    # apply DFA method to model the spatial effects? 0 = no, 1 = yes
     incl_target        = 0L,    # including or not the small scale targeting behavior
     incl_sp_int        = 0L,    # including or not the multispecies catch interaction term (not estimable at the moment)
-    Nfactor            = 3L,    # how many factor you want to use to reduce the dimensionality of the problem
+    Nfactor            = 2L,    # how many factor you want to use to reduce the dimensionality of the problem
     Do_predict         = 1L,    # do you want to predict the CPUE values on the prediction grid cells
     se_fit             = 0L,    # do you want to calculate se on the above prediction?
     sim                = 0L,    # 0: no simulation, 1: yes
