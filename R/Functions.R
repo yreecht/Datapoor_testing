@@ -1,5 +1,5 @@
 ##' Function to generate full mvt matrix of an animal: how likely they move from one cell to another
-##' this is a wrapper of the "Mvt_upd1" function to calculate the movement probablity between all cells
+##' this is a wrapper of the "Mvt_upd1" function to calculate the movement probability between all cells
 ##'
 ##' @param Pop_param is the list of population parameters taken from the user specific simulation setting
 ##' @param Depth_eff logical. do we want to include the habitat preference effect. default is TRUE
@@ -15,7 +15,7 @@
 
 ##'
 ##' @return A movement probability matrix between every cell in the map
-##' @details Applies the specified sampling protocol to the original generated data from the whole fleet
+##' @details
 ##'
 ##' @export
 ##'
@@ -32,7 +32,7 @@ Mvt_matrix <- function(Pop_param, Depth_eff, Dist_eff, Lat_eff, Depth_func, Dist
 
 ##' Function that calculates the probability of a fish to move from a specified cell "loc" to the rest of the simulation area
 ##' The movement probability is calculated based on the product of habitat suitability (depth) and
-##' movement capability (distance between cells and more restriction is any)
+##' movement capability (distance between cells and more restriction if any)
 ##' How a fish prefers some habitat (i.e. the shape of the habitat preference function) and how far they can move are input parameters to this function
 ##'
 ##'
@@ -50,7 +50,7 @@ Mvt_matrix <- function(Pop_param, Depth_eff, Dist_eff, Lat_eff, Depth_func, Dist
 ##' @return the vector of movement probability from the "loc" cell to the other cells
 ##' the order of the vector is the same as the bathymetry map (i.e. x-axis first)
 ##'
-##' @details Applies the specified sampling protocol to the original generated data from the whole fleet
+##' @details
 ##' @export
 ##'
 ##'
@@ -110,7 +110,7 @@ Mvt_upd1 <- function(loc, Pop_param, Depth_eff, Dist_eff, Lat_eff, Depth_func, D
 ##' @return the "near-equilibrium" population distribution. As noted in the description, it is not the equilibirum distribution in strict term.
 ##' The intention is to have a distribution that is sensible based on the underlying habitat map that was provided
 ##'
-##' @details Applies the specified sampling protocol to the original generated data from the whole fleet
+##' @details
 ##' @export
 ##'
 ##'
@@ -131,8 +131,8 @@ Stable_pop_dist <- function(Mvt_mat_adult, B0){
 
 
 
-##' Function to sample from the whole fishing fleet:
-##' @param data is the whole fleet data that was generated
+##' Function to sample from the whole fishing fleet (from the true whole data):
+##' @param data is the whole fleet data that was generated in the simulation
 ##' @param percent is the percent of the data to sample from
 ##' @param unit is the sampling unit of the data. choice of "vessel" or "unit" (fishing event)
 ##' @param months  is used to specify the months at which sampling occurs
@@ -164,7 +164,7 @@ sampling_select <- function(data, percent=0.1, unit="vessel", seed = 123, months
 ##' @param data is the data you want to make the plots
 ##' @param years is the percent of the data to sample from
 ##' @details Produces the plot
-##' @return the final sample data to be fed into the CPUE standardization exercise
+##' @return a plot
 ##' @export
 ##'
 ##'

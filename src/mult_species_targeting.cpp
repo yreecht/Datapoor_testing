@@ -493,6 +493,7 @@ Type objective_function<Type>::operator() ()
       Catch_pred(i,j) = mu(i,j)*exp(catcha(i,j));
       Value_catch(i) += invlogit(Species_target(j))*mu(i,j);
     }
+    if (Value_catch(i) < 0) Value_catch(i) = Type(0);
   }
 
   // ======================== The likelihood components ========================

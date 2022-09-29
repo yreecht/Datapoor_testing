@@ -4,6 +4,9 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 
 
 	#### Set the bathymetry field
+  ## SD_O sets the absolute scale of variability in depth e.g. from 0-100, from 0-500, etc
+  ## scale sets the coarseness of spatial variation: the bigger, the more things are correlated in space.
+  ## a small value e.g. 1 will make the map very patchy (each cell is independent of its neighboor)
 	set.seed(seed_input)
 	model_bathym <- RMgauss(var=Sim_Settings$SD_O^2, scale=Sim_Settings$SpatialScale)
 	map_grid <- expand.grid(X=Sim_Settings$Range_X, Y=Sim_Settings$Range_Y)
@@ -27,8 +30,8 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	      Mvt_matrix(Pop_param=Par_mvt_adult[[x]][,xxx], Depth_eff="TRUE", Dist_eff="TRUE", Lat_eff="TRUE", Dist_func=Sim_Settings$func_mvt_dist[xxx], Depth_func=Sim_Settings$func_mvt_depth[xxx], Lat_func=Sim_Settings$func_mvt_lat[xxx], Eastings=Sim_Settings$Range_X, Northings=Sim_Settings$Range_Y, data.bathym)))
 	}
 
-	#### Biomass dynamics: similarly to the work from Caruthers, we assume that there is a regional carrying capacity
-	# Initial population distribution
+	#### Biomass dynamics: similarly to the work from Thorson et al but with more features
+	### 1. Determining the initial population distribution
 	Pop_adult <- sapply(1:Sim_Settings$n_species, function(x) Stable_pop_dist(Mvt_mat_adult[[1]][[x]], Sim_Settings$B0[x]))
 
 	if(Sim_Settings$plotting==TRUE){
@@ -43,20 +46,17 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	Biomass[1,1,,] <- Pop_adult
 	Biomass[1,1,,] <- apply(Biomass[1,1,,], 2,function(x) replace(x, which(x<=0), 0))
 
-	#### Vessel dynamics
+	### 2. Structuring the vessel dynamics
 
-	### Determining the predicted area specific CPUE
-	map.size <- length(Sim_Settings$Range_X)*length(Sim_Settings$Range_Y)
-
-	# generate total effort by year & month (total effort is randomly sampled with log normal error around a logistic type function)
+	## generate total effort by year & month (total effort will be randomly sampled with log normal error around a logistic type function)
 	Effort <- array(0, dim=c(Sim_Settings$n_years, 12));
 	Mean_Effort <- array(0, dim=c(Sim_Settings$n_years, 12));
+	map.size <- length(Sim_Settings$Range_X)*length(Sim_Settings$Range_Y)
 	Effort_area_year <- array(0, dim=c(Sim_Settings$n_years, 12, map.size));
 
 	Sig_effort <- sqrt(log(Sim_Settings$CV_effort^2+1))
 	Sig_vessel <- sqrt(log(Sim_Settings$CV_vessel^2+1))
 	qq_vessel <- sapply(1:Sim_Settings$n_species, function(x) rlnorm(Sim_Settings$Nvessels, log(Sim_Settings$qq_original[x])-Sig_vessel^2/2, Sig_vessel))
-
 
 	# use of tweedie distribution to generate catch data for individual boat
 	CPUE_tot <- array(NA, dim=c(Sim_Settings$n_years, 12, nrow(data.bathym)))
@@ -64,10 +64,7 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	Catch_area_year_ind <- c();
 
 	# Define historic fishing regions for each vessel randomly
-	# nb_regions <- sample(c(1:sum(Sim_Settings$Nregion)), Sim_Settings$Nvessels, replace=T)
-	# which_regions <- sapply(nb_regions, function(x) sample(1:Sim_Settings$Nregion, x, replace=F))
 	which_regions <- t(sapply(rep(sum(Sim_Settings$Nregion),Sim_Settings$Nvessels), function(x) sample(1:sum(Sim_Settings$Nregion), x, replace=TRUE)))
-	# which_regions <- do.call(rbind, which_regions)
 	areas <- equal_partition( expand.grid(X = Sim2$Range_X, Y = Sim2$Range_Y), Sim_Settings$Nregion[1], Sim_Settings$Nregion[2])$area
 
 	#### Updating the population and generate catch data according to the above specifications

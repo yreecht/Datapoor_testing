@@ -96,11 +96,11 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 		CV_vessel = 0.0001,					# the between vessel variability in mean catchability
 		vessel_seeds = 10,        # this creates heterogeneity in the sampled vessels
 	  Effort_alloc_month = c(5,4,3,2,1,1,1,2,3,4,5,5),  # it is rescaled to sum to 1
-	  do.tweedie = FALSE,				# include observation error in vessel catchability
-		xi = c(1.7,1.7,1.2,1.5),  # power of the tweedie distribution. reduce this to have more 0s. ==0 or >0
-	  phi = c(0.2,0.2,0.2,0.2), # the scaler of the tweedie distribution
-	  # xi = c(0,0,0,0,0),  # power of the tweedie distribution. reduce this to have more 0s. ==0 or >0
-		# phi = c(0.0001,0.0001,0.0001,0.0001,0.0001), # the scaler of the tweedie distribution
+	  do.tweedie = TRUE,				# include observation error in vessel catchability
+		# xi = c(1.7,1.7,1.2,1.5),  # power of the tweedie distribution. reduce this to have more 0s. ==0 or >0
+		xi = c(1.9,1.9,1.9,1.9),  # power of the tweedie distribution. reduce this to have more 0s. ==0 or >0
+	  # phi = c(0.2,0.2,0.2,0.2), # the scaler of the tweedie distribution
+	  phi = c(0.5,0.5,0.5,0.5), # the scaler of the tweedie distribution
 		Preference = 1, 					# controls how effort concentrate into areas. The higher, the more concentrated is the effort
 		Changing_preference = FALSE, 		# whether effort concentration changes over time
 
@@ -124,7 +124,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	# Sim_Settings3$Fish_depth_par1 = c(120, 250, 450, 200) # bycatch species is distributed deeper than the main target
 	Sim2 <- Sim1
 	Sim2$SD_O = 150
-	Sim2$SpatialScale = 25
+	Sim2$SpatialScale = 15
 	Sim2$sigma_p= c(1, 1, 1, 0.5)
 	Sim2$CV_vessel= 0.1
 	system.time(
@@ -161,7 +161,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 #### Perform the sample selection
   Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = Sim2$samp_prob, unit=Sim2$samp_unit, seed=Sim2$samp_seed, months = c(11:12))
-  Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = 0.5, unit=Sim2$samp_unit, seed=2, months = c(11:12))
+  Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = 0.1, unit=Sim2$samp_unit, seed=2, months = c(11:12))
 
   Year_adj <- 1   # if the data is taken towards the end of the year, add the year adjustement factor
 
@@ -341,9 +341,9 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
   # prepare model configuration file
   conf <- list(
-    model_formula      = formula(yy ~ year_fct + s(depth, k=3) + as.factor(area) ), #(1|vessel_fct)),  # this works
-    spatial_model      = 1L,    # 0 = no, non-spatial model, 1 = yes, make it a spatial model
-    include_st         = 1L,    # include the spatio-temporal component? 0 = no, make a simple spatial model with only the average spatial field, 1: yes, st follows IID, 2: yes, st follows AR1
+    model_formula      = formula(yy ~ year_fct + s(depth, k=3) + as.factor(area) + (1|vessel_fct)),  # this works
+    spatial_model      = 0L,    # 0 = no, non-spatial model, 1 = yes, make it a spatial model
+    include_st         = 0L,    # include the spatio-temporal component? 0 = no, make a simple spatial model with only the average spatial field, 1: yes, st follows IID, 2: yes, st follows AR1
     barrier            = 0L,    # using a barrier model?
     do_spatialDFA      = 1L,    # apply DFA method to model the spatial effects? 0 = no, 1 = yes
     incl_target        = 0L,    # including or not the small scale targeting behavior
@@ -365,7 +365,8 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
     endTime-startTime
 
 
-
+  run$opt$diagnostics
+  run$opt$max_gradient
 
   betas <- t(run$obj$report(par = run$obj$env$last.par)$beta)
   colnames(betas) <- colnames(dat_use$tmb_data$X)
