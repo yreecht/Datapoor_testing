@@ -128,7 +128,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	Sim2$sigma_p= c(1, 1, 1, 0.5)
 	Sim2$CV_vessel= 0.1
 	system.time(
-	  Data <- Generate_scenario_data(Sim2, seed_input=12)
+	  Data <- Generate_scenario_data(Sim_Settings = Sim2, seed_input=12)
   )
 
 	# Sim1$Fish_depth_par1 = c(120, 250, 150, 500)
@@ -144,8 +144,8 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	# Simulated depth distribution
 	# ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
   # Simulated effort distribution in space
-	ggplot(data = Data$Data %>% filter(year == 1)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
-	  geom_point(aes(x=X, y=Y)) + facet_wrap(.~month)
+	ggplot(data = Data$Data %>% filter(year == 10, month==11)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
+	  geom_point(aes(x=X, y=Y))
 
 
 #### Calculate the true index
@@ -161,7 +161,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 #### Perform the sample selection
   Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = Sim2$samp_prob, unit=Sim2$samp_unit, seed=Sim2$samp_seed, months = c(11:12))
-  Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = 0.1, unit=Sim2$samp_unit, seed=2, months = c(11:12))
+  Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = 0.2, unit=Sim2$samp_unit, seed=2, months = c(11:12))
 
   Year_adj <- 1   # if the data is taken towards the end of the year, add the year adjustement factor
 
@@ -212,7 +212,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 ##### generating single species data (for single species models)
   Final_data_df$vessel_fct <- as.factor(Final_data_df$vessel)
 
-  Which_sp <- "Sp3"
+  Which_sp <- "Sp4"
 
   Final_data_bycatch = Final_data_df %>% filter(Species == Which_sp)
   Final_data_bycatch$year_fct <- as.factor(Final_data_bycatch$year)
@@ -243,9 +243,11 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   library(mgcv)
   gam1 <- gam(CPUE_trunc ~ 0 + as.factor(year) + as.factor(area) +  s(depth_scl) +
                 s(vessel_fct, bs="re"), data=Final_data_bycatch, family = tw)
+  gam1 <- gam(CPUE_trunc ~ 0 + as.factor(year) + s(X,Y) +  s(depth_scl) +
+                s(vessel_fct, bs="re"), data=Final_data_bycatch, family = tw)
   # gam2 <- gam(Sp3 ~ 0 + as.factor(year) + as.factor(area) +  s(depth_scl) +
                 # s(Sp1,Sp2), data=Final_data, family = tw)
-  # gam.check(gam1)
+  gam.check(gam1)
   predicted <- predict(gam1, newdata = qcs_grid, type="response", se.fit=F)
   pred <- qcs_grid
   pred$pred = predicted
@@ -259,7 +261,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 ####### random forest:
   library(ranger)
-  rf1 <- ranger(CPUE_trunc ~ ., data=Final_data_bycatch %>% select(year, area, depth, vessel, CPUE_trunc),
+  rf1 <- ranger(CPUE_trunc ~ ., data=Final_data_bycatch %>% dplyr::select(year, area, depth, vessel, CPUE_trunc),
                 num.trees = 5000)
   predicted <- predict(rf1, data = qcs_grid, type="response")
   pred <- qcs_grid

@@ -13,7 +13,7 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	Bathym <- RFsimulate(model_bathym, x=map_grid)
 	data.bathym <- data.frame(ID = 1:nrow(map_grid), map_grid , depth=Bathym@data[,1])
 	data.bathym$depth = data.bathym$depth+abs(min(data.bathym$depth))	# to avoid getting negative depth here depth takes positive real number
-	image.plot(Sim_Settings$Range_X, Sim_Settings$Range_Y, matrix(data.bathym$depth,nrow=length(Sim_Settings$Range_X), ncol=length(Sim_Settings$Range_Y)))
+	# image.plot(Sim_Settings$Range_X, Sim_Settings$Range_Y, matrix(data.bathym$depth,nrow=length(Sim_Settings$Range_X), ncol=length(Sim_Settings$Range_Y)))
 
 	#### Set the pop mvt param from the simulation settings for each season (here month)
 	Par_mvt_adult <- lapply(1:12, function(x)
@@ -32,7 +32,7 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 
 	#### Biomass dynamics: similarly to the work from Thorson et al but with more features
 	### 1. Determining the initial population distribution
-	Pop_adult <- sapply(1:Sim_Settings$n_species, function(x) Stable_pop_dist(Mvt_mat_adult[[1]][[x]], Sim_Settings$B0[x]))
+	Pop_adult <- sapply(1:Sim_Settings$n_species, function(x) Stable_pop_dist(Mvt_mat_adult[[1]][[x]], Sim_Settings$B0[x], Sim_Settings$Range_X, Sim_Settings$Range_Y))
 
 	if(Sim_Settings$plotting==TRUE){
 		windows()
@@ -65,7 +65,7 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 
 	# Define historic fishing regions for each vessel randomly
 	which_regions <- t(sapply(rep(sum(Sim_Settings$Nregion),Sim_Settings$Nvessels), function(x) sample(1:sum(Sim_Settings$Nregion), x, replace=TRUE)))
-	areas <- equal_partition( expand.grid(X = Sim2$Range_X, Y = Sim2$Range_Y), Sim_Settings$Nregion[1], Sim_Settings$Nregion[2])$area
+	areas <- equal_partition( expand.grid(X = Sim_Settings$Range_X, Y = Sim_Settings$Range_Y), Sim_Settings$Nregion[1], Sim_Settings$Nregion[2], Sim_Settings$Range_X, Sim_Settings$Range_Y)$area
 
 	#### Updating the population and generate catch data according to the above specifications
 	for (iyear in 1:Sim_Settings$n_years){

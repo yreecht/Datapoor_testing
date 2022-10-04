@@ -72,6 +72,10 @@ xyz <- rasterToPoints(vals)
   plot(1:600, dexp(1:600, rate = 1/200), type="l", main = "Exponential", ylab="", xlab="", col="red",lwd=2)
   plot(1:600, dunif(1:600, 100, 400), type="l", main = "Uniform", ylab="", xlab="", col="red",lwd=2)
 
+#### Fishing location
+  ggplot(data = Data$Data %>% filter(year == 1)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
+    geom_point(aes(x=X, y=Y)) + facet_wrap(.~month)
+
 
 
 

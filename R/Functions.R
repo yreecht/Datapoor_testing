@@ -117,14 +117,14 @@ Mvt_upd1 <- function(loc, Pop_param, Depth_eff, Dist_eff, Lat_eff, Depth_func, D
 ##
 ##
 ##
-Stable_pop_dist <- function(Mvt_mat_adult, B0){
-  Pop1 <- rep(B0/(length(Sim_Settings$Range_X)*length(Sim_Settings$Range_Y)), (length(Sim_Settings$Range_X)*length(Sim_Settings$Range_Y)))
+Stable_pop_dist <- function(Mvt_mat_adult, B0, Range_X, Range_Y){
+  Pop1 <- rep(B0/(length(Range_X)*length(Range_Y)), (length(Range_X)*length(Range_Y)))
   Mvt_mat_adult1 <- t(Mvt_mat_adult)
   for (Time in 1:1000){
     Pop <- Mvt_mat_adult1%*%Pop1
     Pop1 <- Pop
   }
-  Initpop_adult_mat <- matrix(Pop1, nrow=length(Sim_Settings$Range_X), ncol=length(Sim_Settings$Range_Y))
+  Initpop_adult_mat <- matrix(Pop1, nrow=length(Range_X), ncol=length(Range_Y))
   return(Initpop_adult_mat)
 }
 
@@ -186,8 +186,8 @@ plot_fishing <- function(data, years, ...){
 ##' @export
 ##'
 ##'
-equal_partition <- function(data, ncut_x=2, ncut_y=2){
-  out <- expand.grid(X = Sim2$Range_X, Y = Sim2$Range_Y)
+equal_partition <- function(data, ncut_x=2, ncut_y=2, Range_X, Range_Y){
+  out <- expand.grid(X = Range_X, Y = Range_Y)
   out <- out %>% mutate(X_cut = factor(cut(X, ncut_x), labels=c(1:ncut_x)),
                         Y_cut = factor(cut(Y, ncut_y), labels=c(1:ncut_y)))
   area <- as.factor(apply(out[,3:4], 1, function(x) paste(x, collapse="_")))
