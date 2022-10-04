@@ -19,7 +19,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 #### sourcing codes
 	source("R/Generate_scenario_data.r")
-	source("R/Functions.r")
+	source("R/Functions.R")
 
 #### Setting OM parameters
 
