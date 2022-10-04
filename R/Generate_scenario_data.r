@@ -35,7 +35,7 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	Pop_adult <- sapply(1:Sim_Settings$n_species, function(x) Stable_pop_dist(Mvt_mat_adult[[1]][[x]], Sim_Settings$B0[x], Sim_Settings$Range_X, Sim_Settings$Range_Y))
 
 	if(Sim_Settings$plotting==TRUE){
-		windows()
+		X11()
 		nf <- layout(matrix(1:6, nrow=3))
 		par(mar=c(1,1,1,1))
 		fields::image.plot(Sim_Settings$Range_X, Sim_Settings$Range_Y, matrix(data.bathym$depth,nrow=length(Sim_Settings$Range_X), ncol=length(Sim_Settings$Range_Y)))
