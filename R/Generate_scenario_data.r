@@ -103,7 +103,7 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
   		Catch_year_area_mat <- matrix(0, nrow=map.size, ncol=Sim_Settings$n_species)
 
   		vessel_seed <- sample(1:Sim_Settings$vessel_seeds, 1)
-  		set.seed(vessel_seed)
+  		set.seed(vessel_seed)     # this piece of code is to create heterogeneity in the vessel fishing times (without it all vessels fish about the same number of times)
   		for (xyz in which(Effort_area_year[iyear,month,]>0)){
   			vessel_pool_area <- (1:Sim_Settings$Nvessels)[apply(which_regions, 1, function(x) areas[xyz] %in% x)]
   		  which.vessel.fished <- sample(vessel_pool_area, Effort_area_year[iyear,month,xyz], replace=TRUE)
@@ -159,54 +159,6 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
   		if (Sim_Settings$Interactive == TRUE) print(iyear)
 	  }
 	 }
-
-	#### Plotting
-  if(Sim_Settings$plotting==TRUE) {
-  	# plot total catch 1st year and last year
-		# windows()
-		nf <- layout(1:2)
-		par(mar=c(1,1,2,1), oma=c(4,4,2,2))
-		hist(Catch_area_year_ind[,'Sp1'], breaks=100)
-		hist(Catch_area_year_ind[,'Sp2'], breaks=100)
-
-	  # plot biomass change over time
-		# windows()
-		for (iyear in 1:Sim_Settings$n_years){
-			nf <- layout(1:5)
-			par(mar=c(1,1,2,1), oma=c(4,4,2,2))
-			fields::image.plot(matrix(Biomass[iyear,1,,1],length(Sim_Settings$Range_X),length(Sim_Settings$Range_X)), main=paste("Year", iyear))
-			fields::image.plot(matrix(Biomass[iyear,1,,2],length(Sim_Settings$Range_X),length(Sim_Settings$Range_Y)))
-			fields::image.plot(matrix(Biomass[iyear,1,,3],length(Sim_Settings$Range_X),length(Sim_Settings$Range_Y)))
-			fields::image.plot(matrix(Biomass[iyear,1,,4],length(Sim_Settings$Range_X),length(Sim_Settings$Range_Y)))
-			fields::image.plot(matrix(Effort_area_year[[iyear]] , length(Sim_Settings$Range_X),length(Sim_Settings$Range_X)))
-			if(Sim_Settings$Interactive==TRUE) gtools::ask()
-		}
-
-	  # Time series of effort, raw CPUE, depletion
-		# windows()
-		# nf <- layout(1:4)
-		# par(mar=c(4,4,1,1))
-		# # Effort
-		# matplot(Effort, ylim=c(min(Effort*0.8), max(Effort*1.2)), lwd=2, type="l", xlab="Year")
-		# lines(Mean_Effort, lwd=2)
-		# legend("topleft", legend=c("Sp1","Sp2","Sp3","Sp4"), col=c("black","red","green","blue"), lty=1, bty="n")
-		# # Total catch
-		# aa <- t(sapply(1:n_years, function(x) apply(Catch_area_year[[x]],2,sum)))   # total catch
-		# matplot(aa, type="l", ylab="Total catch", lty=1, xlab="Year", lwd=2)
-		# # Raw CPUE (dash line) and biomass (solid line)
-		# CPUE_raw <- aa/Effort
-		# bb <- t(sapply(1:n_years, function(x) apply(Biomass[[x]],2,sum)/B0))
-		# matplot(bb, type="l",ylim=c(0,1), lty=1, lwd=2, ylab="Relative level") 	# the true biomass trajectory in solid line
-		# RAW_CPUE <- cbind(CPUE_raw[,1]/CPUE_raw[1,1], CPUE_raw[,2]/CPUE_raw[1,2], CPUE_raw[,3]/CPUE_raw[1,3], CPUE_raw[,4]/CPUE_raw[1,4])
-		# matlines(RAW_CPUE, type="l",ylim=c(0,1), lty=2, lwd=2) 	# the raw CPUE trajectory in dash line
-		# legend("topright", c("Biomass", "Raw CPUE"), lty=c(1,2), bty="n")
-		# # Relationship raw CPUE vs depletion
-		# plot(bb[,1], CPUE_raw[,1]/(CPUE_raw[1,1]), type="l", lwd=2, col=1, xlab="Biomass depletion level", ylab="Raw standardized CPUE", xlim=c(0,1), ylim=c(0,1), )
-		# lines(bb[,2], CPUE_raw[,2]/CPUE_raw[1,2], type="l", lwd=2, col="red")
-		# lines(bb[,3], CPUE_raw[,3]/CPUE_raw[1,3], type="l", lwd=2, col="green")
-		# lines(bb[,4], CPUE_raw[,4]/CPUE_raw[1,4], type="l", lwd=2, col="blue")
-		# abline(0,1, lty=2)
-	}
 
 	#### Return data                                                                # v.names="CPUE",
 

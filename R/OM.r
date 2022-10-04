@@ -107,7 +107,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 	### Parameter controlling the resampling procedure from the whole fleet
 	  samp_prob = 0.2,             # this is the sampling probability
-	  samp_unit = "vessel",        # the samping unit: vessel or all fishing events
+	  samp_unit = "vessel",        # the samping unit: "vessel" or "fishing" (i.e. random sample from all fishing events)
 	  samp_seed = 123,             # the seed for reproducibility of the samples taken
 	  samp_mincutoff = 0,        # cut-off value to round values to 0
     start_year = 5,

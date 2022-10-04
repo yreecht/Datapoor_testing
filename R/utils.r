@@ -458,3 +458,53 @@
 
 
 
+
+
+  ##' Function to detect the underlying spatial covariance structure (variogram) from the data
+  ##' and take this information to simulate the underlying depth distribution for the case study
+  ##'
+  ##' @param inputdata is the input data.frame with X, Y, and the response variable of interest (at least)
+  ##' @param outputdata is the output data.frame with X, Y, and the response variable of interest. This creates the underlying map in the simulation model
+  ##' @param response_var  the name of the response variable column
+  ##'
+  ##' @details
+  ##' @example
+  ##'
+  ##' library(field)
+  ##' model_bathym <- RMgauss(var=150^2, scale=25)
+  ##' map_grid <- expand.grid(X=1:40, Y=1:40)
+  ##' Bathym <- RFsimulate(model_bathym, x=map_grid)
+  ##' data.bathym <- data.frame(ID = 1:nrow(map_grid), map_grid , depth=Bathym@data[,1])
+  ##' map_grid <- expand.grid(X=1:50, Y=1:50)
+  ##' Bathym <- RFsimulate(model_bathym, x=map_grid)
+  ##' data.bathym1 <- data.frame(ID = 1:nrow(map_grid), map_grid , depth=Bathym@data[,1])
+  ##' Dat <- Detect_simulate_variogram(inputdata=data.bathym, outputdata=data.bathym1, response_var = "depth")
+  ##'
+  ##'
+  ##'
+  ##'
+  Detect_simulate_variogram <- function(inputdata=data.bathym, outputdata=data.bathym1, response_var = "depth"){
+    inputdata$resp <- inputdata[,response_var]
+    coordinates(inputdata) <- ~ X + Y
+    library(automap)
+    m <- autofitVariogram(resp~1, inputdata)
+    plot(m)
+    library(gstat)
+    v <- variogram(resp~1, inputdata)#create a variogram of the sorting data
+    m <- fit.variogram(v, vgm(psill=m$var_model[2,2], model=as.character(m$var_model[2,1]), range=m$var_model[2,3], nugget =m$var_model[1,2], kappa=m$var_model[2,4]))    #fit a model to the variogram
+    plot(v, model= m)
+
+    outputdata$resp <- NA
+    coordinates(outputdata) <- ~ X + Y
+    g <- gstat(id = "resp", formula = resp~1, data=inputdata, model = m, nmax=5)
+    library(raster)
+    vals=predict(g, newdata=outputdata)
+    xyz <- data.frame(vals@coords, resp=vals@data$resp.pred)
+    colnames(xyz) <- c("X", "Y", "depth")
+    return(xyz)
+  }
+
+
+
+
+
