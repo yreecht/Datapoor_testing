@@ -19,7 +19,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 #### sourcing codes
 	source("R/Generate_scenario_data.r")
-	source("R/Functions.r")
+	source("R/Functions.R")
 
 #### Setting OM parameters
 
@@ -168,7 +168,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   nb_x = 2
   nb_y = 2
 
-  Final_data <- equal_partition(Final_data, nb_x, nb_y)
+  Final_data <- equal_partition(Final_data, nb_x, nb_y, Range_X = Sim2$Range_X, Range_Y = Sim2$Range_Y)
   Final_data$depth_scl <- scale(Final_data$depth)
 
   truncate_fn <- function(x) ifelse(x < Sim2$samp_mincutoff, 0, x)
@@ -196,7 +196,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   qcs_grid$vessel_fct <- unique(Final_data_df$vessel)[1]
   qcs_grid <-  qcs_grid %>% mutate(X = as.numeric(X), Y= as.numeric(Y), depth_scl = (depth-mean(qcs_grid$depth))/sd(qcs_grid$depth))
   qcs_grid$CPUE_trunc <- 1
-  qcs_grid <- equal_partition(qcs_grid, nb_x, nb_y)
+  qcs_grid <- equal_partition(qcs_grid, nb_x, nb_y, Range_X = Sim2$Range_X, Range_Y = Sim2$Range_Y)
   qcs_grid$year_area_fct <- as.factor(apply(qcs_grid[, c('year','area')], 1, function(x) paste(x, collapse="_")))
   qcs_grid <- qcs_grid %>% filter(year >= Sim2$start_year)
 
