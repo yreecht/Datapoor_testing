@@ -504,7 +504,42 @@
     return(xyz)
   }
 
+range2logNparams <- function(mean.depth, min.depth, max.depth, prob = 0.95)
+{
+    ## Purpose: use preferential ranges of depth to parametrise mean depth
+    ## and log sd depth (logN dist.)
+    ## ----------------------------------------------------------------------
+    ## Arguments: one of min.depth and mean.depth,
+    ##            and max.depth must be defined.
+    ##            Assumed probability = prob to be found in the preferential
+    ##            range.
+    ## ----------------------------------------------------------------------
+    ## Author: Yves Reecht, Date:  5 Oct 2022, 15:32
 
+    d <- qnorm(p = 1 - (1 - prob) / 2)
 
+    if (!missing(min.depth) && ! missing(mean.depth)) # Precedence of mean.depth
+    {
+        warning("min.depth is overriden by mean.depth")
+    }
+
+    if (missing(mean.depth))
+    {
+        mean.depth <- exp(mean(log(c(min.depth, max.depth))))
+    }
+
+    if (missing(min.depth) || ! missing(mean.depth)) # Precedence of mean.depth
+    {
+        min.depth <- exp(log(mean.depth) -
+                         diff(log(c(mean.depth, max.depth)))) # symmetrical in the log scale.
+    }
+
+    ## Return a consistent set of parameters, including the probability of inclusion used,
+    ##  for the record (may differ depending on the type or range considered, e.g. 0.95 for
+    ##  limits and say 0.75 for preferential depth range).
+    return(c(mean = mean.depth,
+             logsd = diff(log(c(min.depth, max.depth))) / (2 * d),
+             min = min.depth, max = max.depth, prob = prob))
+}
 
 
