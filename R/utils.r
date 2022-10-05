@@ -504,7 +504,18 @@
     return(xyz)
   }
 
+range2logNparams <- function(min, max, prob = 0.95)
+{
+    ## Purpose:
+    ## ----------------------------------------------------------------------
+    ## Arguments:
+    ## ----------------------------------------------------------------------
+    ## Author: Yves Reecht, Date:  5 Oct 2022, 15:32
 
+    d <- qnorm(p = 1 - (1 - prob) / 2)
 
+    return(c(mean = exp(mean(log(c(min, max)))),
+             logsd = diff(log(c(min, max))) / (2 * d)))
+}
 
 
