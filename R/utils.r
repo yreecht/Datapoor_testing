@@ -504,18 +504,39 @@
     return(xyz)
   }
 
-range2logNparams <- function(min, max, prob = 0.95)
+range2logNparams <- function(mean.depth, min.depth, max.depth, prob = 0.95)
 {
-    ## Purpose:
+    ## Purpose: use preferential ranges of depth to parametrise mean depth
+    ## and log sd depth (logN dist.)
     ## ----------------------------------------------------------------------
-    ## Arguments:
+    ## Arguments: one of min.depth and mean.depth,
+    ##            and max.depth must be defined.
+    ##            Assumed probability = prob to be found in the preferential
+    ##            range.
     ## ----------------------------------------------------------------------
     ## Author: Yves Reecht, Date:  5 Oct 2022, 15:32
 
     d <- qnorm(p = 1 - (1 - prob) / 2)
 
-    return(c(mean = exp(mean(log(c(min, max)))),
-             logsd = diff(log(c(min, max))) / (2 * d)))
+    if (!missing(min.depth) && ! missing(mean.depth)) # Precedence of mean.depth
+    {
+        warning("min.depth is overriden by mean.depth")
+    }
+
+    if (missing(mean.depth))
+    {
+        mean.depth <- exp(mean(log(c(min.depth, max.depth))))
+    }
+
+    if (missing(min.depth) || ! missing(mean.depth)) # Precedence of mean.depth
+    {
+        min.depth <- exp(log(mean.depth) -
+                         diff(log(c(mean.depth, max.depth)))) # symmetrical in the log scale.
+    }
+
+    return(c(mean = mean.depth,
+             logsd = diff(log(c(min.depth, max.depth))) / (2 * d),
+             min = min.depth, max = max.depth))
 }
 
 
