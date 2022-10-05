@@ -18,19 +18,19 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 
 #### sourcing codes
-	source("R/Generate_scenario_data.R")  ## File that runs the simulation
+	source("R/Generate_scenario_data.r")  ## File that runs the simulation
   source("R/Functions.R")               ## File that include the main functions that are called in various part of the simulation
-  source("R/Scenario_setup.R")            ## The main file to set-up the operating model i.e. configuring the population parameters and the fleet dynamics
+  source("R/Scenario_setup_Atlantic_wolffish.R")            ## The main file to set-up the operating model i.e. configuring the population parameters and the fleet dynamics
 
 
 	# some ideas of setting
 	# Sim2$Fish_depth_par1 = c(120, 250, 150, 500) # bycatch species has similar distribution as another species
 	# Sim_Settings3$Fish_depth_par1 = c(120, 250, 450, 200) # bycatch species is distributed deeper than the main target
 	Sim2 <- Sim1
-	Sim2$SD_O = 150
-	Sim2$SpatialScale = 15
-	Sim2$sigma_p= c(1, 1, 1, 0.5)
-	Sim2$CV_vessel= 0.1
+	## Sim2$SD_O = 150
+	## Sim2$SpatialScale = 15
+	## Sim2$sigma_p= c(1, 1, 1, 0.5)
+	## Sim2$CV_vessel= 0.1
 
 	## Running the simulation model with the user-specified configurations
 	system.time(
@@ -46,18 +46,24 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	# Simulated depth distribution
 	ggplot(Data$bathym) + geom_raster(aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c()
 	# Simulated depth distribution
-	# ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
+                                        # ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
+
   # Simulated effort distribution in space
-	ggplot(data = Data$Data %>% filter(year == 10, month==11)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
+	ggplot(data = Data$Data %>% filter(year == 10, month==8)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
 	  geom_point(aes(x=X, y=Y))
 
+dim(Data$Biomass)
 
 #### Calculate the true index
+X11()
 	Average_monthly_biomass <- apply(Data$Biomass, c(1,2,4), sum)
 	plot(1:Sim2$n_years, Average_monthly_biomass[,1,1]/Average_monthly_biomass[1,1,1], type="l", ylim=c(0,1.5))
 	lines(1:Sim2$n_years, Average_monthly_biomass[,1,2]/Average_monthly_biomass[1,1,2], col = "red")
 	lines(1:Sim2$n_years, Average_monthly_biomass[,1,3]/Average_monthly_biomass[1,1,3], col = "blue")
-	lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,4], col = "green")
+lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,4], col = "green")
+	lines(1:Sim2$n_years, Average_monthly_biomass[,1,5]/Average_monthly_biomass[1,1,5], col = "black", lwd = 2, lty = 1)
+	lines(1:Sim2$n_years, Average_monthly_biomass[,1,6]/Average_monthly_biomass[1,1,6], col = "black", lwd = 2, lty = 2)
+
 
   true_index <- apply(Average_monthly_biomass[,1,], 2, function(x) x/x[1]) %>% as.data.frame()
   colnames(true_index) <- paste0("Sp", 1:Sim2$n_species)
