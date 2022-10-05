@@ -534,9 +534,12 @@ range2logNparams <- function(mean.depth, min.depth, max.depth, prob = 0.95)
                          diff(log(c(mean.depth, max.depth)))) # symmetrical in the log scale.
     }
 
+    ## Return a consistent set of parameters, including the probability of inclusion used,
+    ##  for the record (may differ depending on the type or range considered, e.g. 0.95 for
+    ##  limits and say 0.75 for preferential depth range).
     return(c(mean = mean.depth,
              logsd = diff(log(c(min.depth, max.depth))) / (2 * d),
-             min = min.depth, max = max.depth))
+             min = min.depth, max = max.depth, prob = prob))
 }
 
 
