@@ -39,12 +39,22 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 
 	Data$Data <- as.data.frame(Data$Data)
-  apply(Data$Data, 2, range)
-	table(Data$Data$vessel)
-	with(Data$Data, table(year, vessel));
+
+	# The range of values of catch for each species
+	apply(Data$Data, 2, range)
+
+	# Making a histogram of the catch
+	Data_long <- pivot_longer(Data$Data, cols = starts_with("Sp"), names_to = "Species", values_to = "Catch")
+	ggplot(Data_long, aes(x=Catch)) + facet_grid(.~Species) + geom_histogram() + theme_bw()
+
+	# Looking at the catch composition
+	Comps_data <- Data$Data %>% dplyr::select(starts_with("Sp")) %>% mutate( . / rowSums(.))
+	apply(Comps_data,2,mean)
+
 
 	# Simulated depth distribution
 	ggplot(Data$bathym) + geom_raster(aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c()
+
 	# Simulated depth distribution
 	# ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
   # Simulated effort distribution in space

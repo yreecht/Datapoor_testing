@@ -17,7 +17,7 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 
 	#### Set the pop mvt param from the simulation settings for each season (here month)
 	Par_mvt_adult <- lapply(1:12, function(x)
-	  rbind(Sim_Settings$Fish_dist_par1[x,], Sim_Settings$Fish_dist_par2, Sim_Settings$Fish_depth_par1[x,], Sim_Settings$Fish_depth_par2[x,], Sim_Settings$Fish_range_par1, Sim_Settings$Fish_range_par2));
+	  rbind(Sim_Settings$Fish_dist_par1[x,], Sim_Settings$Fish_dist_par2, Sim_Settings$Fish_depth_par1[x,], Sim_Settings$Fish_depth_par2[x,]));
 
 	#### Calculate the movement matrices
 	if (Sim_Settings$parallel == FALSE) Mvt_mat_adult <- lapply(1:12, function(x)
@@ -67,9 +67,32 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	which_regions <- t(sapply(rep(sum(Sim_Settings$Nregion),Sim_Settings$Nvessels), function(x) sample(1:sum(Sim_Settings$Nregion), x, replace=TRUE)))
 	areas <- equal_partition( expand.grid(X = Sim_Settings$Range_X, Y = Sim_Settings$Range_Y), Sim_Settings$Nregion[1], Sim_Settings$Nregion[2], Sim_Settings$Range_X, Sim_Settings$Range_Y)$area
 
+	# Keep track of the population abundance/number that left the fishing ground
+	Gone_outside <- array(0, dim=c(Sim_Settings$n_years, 12, 1, Sim_Settings$n_species))
+  Gone_total <- rep(0, Sim_Settings$n_species)  ## a dummy variable to keep track of the total population that left
+
 	#### Updating the population and generate catch data according to the above specifications
 	for (iyear in 1:Sim_Settings$n_years){
 	  for (month in 1:12){
+	    ### If the population migrates out of the fishing area, do that before the fishing
+	    for (sp in 1:Sim_Settings$n_species){
+	      if (Sim_Settings$Rangeshift_proportion[month, sp]==0) Gone_total[sp] = 0  ## Refresh the counter
+	      if (Sim_Settings$Rangeshift_proportion[month, sp]>0){
+  	      if (month == 1) {
+  	        rate1 = Sim_Settings$Rangeshift_proportion[12, sp]
+  	        rate <- Sim_Settings$Rangeshift_proportion[1, sp] - rate1
+  	      }
+  	      if (month > 1) {
+  	        rate1 = Sim_Settings$Rangeshift_proportion[month-1, sp]
+  	        rate <- Sim_Settings$Rangeshift_proportion[month, sp] - rate1
+  	      }
+  	      if (rate>0){
+  	        Biomass[iyear,month,,sp] <- Biomass[iyear,month,,sp]/(1-rate1)*Sim_Settings$Rangeshift_proportion[month, sp]
+  	        Gone_outside[iyear,month,1,sp] <- sum(Biomass[iyear,month,,sp]*(1-(1-Sim_Settings$Rangeshift_proportion[month, sp])/(1-rate1)))
+  	        Gone_total[sp] = Gone_total[sp] + Gone_outside[iyear,month,1,sp]
+  	      }
+	      }
+	    }
 
 	    set.seed(seed_input + iyear*12 + month)
   		### do vessel change their fishing preference over the year (this ONLY controls vessel concentration factor)
@@ -80,13 +103,8 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
   		Mean_Effort[iyear,] <- (Sim_Settings$Tot_effort/(1+exp(-0.1*iyear)))*Sim_Settings$Effort_alloc_month/sum(Sim_Settings$Effort_alloc_month)		# mean effort by year
   		Effort[iyear,] <- trunc(rlnorm(12, log(Mean_Effort[iyear,]-Sig_effort^2/2), Sig_effort))		# effort by year
 
-  		### changing the catchability "qq" every year depending on whether a specific area is closed or not
-  		if (iyear>=Sim_Settings$year.depth.restriction){
-  			catchability <- rep(1,map.size)
-  			if(length(depth.restriction)==2) catchability <- replace(catchability, which(bathym >= Sim_Settings$depth.restriction[1] & bathym <= Sim_Settings$depth.restriction[2]), 0)
-  			if(depth.restriction== "random") catchability <- replace(catchability, sample(1:map.size, size=20), 0)
-  			qq <- catchability
-  		} else { qq <- Sim_Settings$qq_original }
+  		### just an old placeholder (not very efficient)
+  		qq <- Sim_Settings$qq_original
 
   		### Continuous catch equation - calculating the expected revenue
   		CPUE_tot[iyear,month,] <- apply(Biomass[iyear,month,,]*matrix((1-exp(-qq)), nrow=map.size, ncol=Sim_Settings$n_species, byrow=T) * matrix(Sim_Settings$price_fish[iyear,], nrow=map.size, ncol=Sim_Settings$n_species, byrow=T),1,sum)
@@ -156,11 +174,46 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
   		  Biomass[iyear+1,1,,] <- apply(Biomass[iyear+1,1,,],2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
   		}
 
+
+  		### The population that left comes back to the fishing ground and redistribute to the other grid cells
+  		coming_back <- 0
+  		for (sp in 1:Sim_Settings$n_species){
+    		  if (month < 12) {
+    		    rate2 = Sim_Settings$Rangeshift_proportion[month+1, sp]
+    		    rate_back = rate2 - Sim_Settings$Rangeshift_proportion[month, sp]
+    		  }
+    		  if (month == 12) {
+    		    rate2 = Sim_Settings$Rangeshift_proportion[1, sp]
+    		    rate_back = rate2 - Sim_Settings$Rangeshift_proportion[month, sp]
+    		  }
+    		  if (rate_back < 0){
+    		    coming_back <- Gone_total/Sim_Settings$Rangeshift_proportion[month, sp] * (1- rate2)
+      		  ## Now we need to redistribute these animals that will be going back to the rest of the zone
+      		  if (month < 12) {
+      		    temp = Par_mvt_adult[[month+1]]
+      		    temp[1,sp] = Sim_Settings$Rangeshift_distance[sp]
+      		    Mvt_migration <- Mvt_upd1(loc = length(Sim_Settings$Range_X)*length(Sim_Settings$Range_Y)-(Sim_Settings$Range_X-1), Pop_param=temp[,sp], Depth_eff="TRUE", Dist_eff="TRUE", Lat_eff="TRUE", Dist_func=Sim_Settings$func_mvt_dist[sp], Depth_func=Sim_Settings$func_mvt_depth[sp], Lat_func=Sim_Settings$func_mvt_lat[sp], data.bathym)
+
+      		    Biomass[iyear,month+1,,sp] <- Biomass[iyear,month+1,,sp] + Mvt_migration[[month]]*coming_back
+      		    Biomass[iyear,month+1,,sp] <- replace(Biomass[iyear,month+1,,sp], which(is.na(Biomass[iyear,month+1,,sp])==TRUE | Biomass[iyear,month+1,,sp]<=0),0)
+      		  }
+      		  if (month == 12 & iyear < Sim_Settings$n_years){
+      		    temp = Par_mvt_adult[[1]]
+      		    temp[1,sp] = Sim_Settings$Rangeshift_distance[sp]
+      		    Mvt_migration <- Mvt_upd1(loc = length(Sim_Settings$Range_X)*length(Sim_Settings$Range_Y)-(Sim_Settings$Range_X-1), Pop_param=temp[,sp], Depth_eff="TRUE", Dist_eff="TRUE", Lat_eff="TRUE", Dist_func=Sim_Settings$func_mvt_dist[sp], Depth_func=Sim_Settings$func_mvt_depth[sp], Lat_func=Sim_Settings$func_mvt_lat[sp], data.bathym)
+
+      		    Biomass[iyear+1,1,,sp] <- Biomass[iyear+1,1,,sp] + Mvt_migration[[month]]*coming_back
+      		    Biomass[iyear+1,1,,sp] <- replace(Biomass[iyear+1,1,,sp], which(is.na(Biomass[iyear+1,1,,sp])==TRUE | Biomass[iyear+1,1,,sp]<=0),0)
+      		  }
+    		  }
+    		}
+
+
   		if (Sim_Settings$Interactive == TRUE) print(iyear)
 	  }
 	 }
 
-	#### Return data                                                                # v.names="CPUE",
+	#### Return data
 
 	Return = list(Data= Catch_area_year_ind, Biomass=Biomass, bathym=data.bathym)
 	return(Return)

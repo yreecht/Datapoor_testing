@@ -65,9 +65,20 @@ Sim1 <- list(
                              1, 0.5, 0.5, 1, # month11
                              1, 0.5, 0.5, 1),# month12
                            nrow=12, ncol=4, byrow=T),
-  Fish_range_par1 = rep(0, 4),                    # X-axis range min
-  Fish_range_par2 = rep(50,4),                    # X axis range max
-
+  Rangeshift_proportion = matrix(c(0, 0, 0, 0, # how much (proportion) of the population leave the fishing area by season. 0=nothing, 1=all
+                                   0, 0, 0, 0, # month2
+                                   0, 0, 0, 0, # month3
+                                   0, 0, 0, 0, # month4
+                                   0, 0, 0, 0, # month5
+                                   0, 0, 0, 0.4, # month6
+                                   0, 0, 0, 0.9, # month7
+                                   0, 0, 0, 0.9, # month8
+                                   0, 0, 0, 0.4, # month9
+                                   0, 0, 0, 0, # month10
+                                   0, 0, 0, 0, # month11
+                                   0, 0, 0, 0),# month12          # the proportion of the population that leave the fishing groun X axis range max
+                                   nrow=12, ncol=4, byrow=T),                    #
+  Rangeshift_distance = c(0,0,0,50),   # 0 if the species does not perform any range shift
   ## Species Schaefer pop dyn parameters
   B0 = c(10000,10000,10000,10000)*1000,	# based on petrale, dover, darkblotched, sablefish, maybe bird/marine mammal
   r = c(0.22, 0.17, 0.08, 0.15)/12,         # based on petrale, dover, darkblotched, sablefish (mt)
@@ -102,7 +113,7 @@ Sim1 <- list(
   start_year = 5,
 
   ### Other OM control features
-  plotting = TRUE,
+  plotting = FALSE,
   parallel = FALSE,
   Interactive = FALSE
 )

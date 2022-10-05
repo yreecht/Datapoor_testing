@@ -48,7 +48,7 @@ xyz <- rasterToPoints(vals)
 
 #### Illustration movement probability
   Par_mvt_adult[[1]][1,1] = 1
-  bla <- Mvt_upd1(loc = 10, Pop_param=Par_mvt_adult[[1]][,1], Depth_eff="TRUE", Dist_eff="TRUE", Lat_eff="TRUE", Dist_func=Sim_Settings$func_mvt_dist[xxx], Depth_func=Sim_Settings$func_mvt_depth[1], Lat_func=Sim_Settings$func_mvt_lat[1], data.bathym)
+  bla <- Mvt_upd1(loc = 40*40-39, Pop_param=Par_mvt_adult[[1]][,1], Depth_eff="TRUE", Dist_eff="TRUE", Lat_eff="TRUE", Dist_func=Sim_Settings$func_mvt_dist[xxx], Depth_func=Sim_Settings$func_mvt_depth[1], Lat_func=Sim_Settings$func_mvt_lat[1], data.bathym)
   image.plot(matrix(bla, nrow=40, ncol=40))
   Par_mvt_adult[[1]][1,1] = 5
   bla <- Mvt_upd1(loc = 10, Pop_param=Par_mvt_adult[[1]][,1], Depth_eff="TRUE", Dist_eff="TRUE", Lat_eff="TRUE", Dist_func=Sim_Settings$func_mvt_dist[xxx], Depth_func=Sim_Settings$func_mvt_depth[1], Lat_func=Sim_Settings$func_mvt_lat[1], data.bathym)
