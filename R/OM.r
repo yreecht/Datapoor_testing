@@ -23,41 +23,45 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   source("R/Scenario_setup.R")            ## The main file to set-up the operating model i.e. configuring the population parameters and the fleet dynamics
 
 
-	# some ideas of setting
-	# Sim2$Fish_depth_par1 = c(120, 250, 150, 500) # bycatch species has similar distribution as another species
-	# Sim_Settings3$Fish_depth_par1 = c(120, 250, 450, 200) # bycatch species is distributed deeper than the main target
-	# Sim2 <- Sim1
-	# Sim2$SD_O = 150
-	# Sim2$SpatialScale = 15
-	# Sim2$sigma_p= c(1, 1, 1, 0.5)
-	# Sim2$CV_vessel= 0.1
-
-	## Running the simulation model with the user-specified configurations
+#### Step1: Running the simulation model with the user-specified configurations from "Scenario_setup.R" file
 	system.time(
 	  Data <- Generate_scenario_data(Sim_Settings = Sim1, seed_input=12)
   )
 
+#### Step2: If the above model runs, then we need to adjust its parameters to match the pattern observed in the real data
 
 	Data$Data <- as.data.frame(Data$Data)
 
-	# The range of values of catch for each species
+	### Step 2.1: Look at the range of catch values for each species
+	### a/ adjust "qq_original" for the main species to scale up and down the catch
+	### b/ If you simulated any discarded species via the discard rate specification, once the catch scale is correct,
+	###    adjust "Discard_rate_beta1" and "Discard_rate_beta2" to adjust the scale of the discard
 	apply(Data$Data, 2, range)
 
-	# How many regions
+	### Step 2.2: Look at the amount of zero in the catch
+	### a/ adjust tweedie distribution "phi" parameter
+	apply(Data$Data, 2, function(x) sum(x==0)/length(x))
+
+	### Step 2.3: Look at the catch composition
+	### For this step, run a cluster analysis and compare the obtained clusters' composition between the real data and the generated data)
+	Comps_data <- Data$Data %>% dplyr::select(starts_with("Sp"))
+	library(cluster)
+	clusters <- pam(Comps_data, k=3)
+
+
+
+  ### Other explorative analysis 6 plots
+	## How many regions
 	table(Data$Data$Area, Data$Data$Vessel)
 
-	# Making a histogram of the catch
+	## Making a histogram of the catch
 	Data_long <- pivot_longer(Data$Data, cols = starts_with("Sp"), names_to = "Species", values_to = "Catch")
 	ggplot(Data_long, aes(x=Catch)) + facet_grid(.~Species) + geom_histogram() + theme_bw()
 
-	# Looking at the catch composition
-	Comps_data <- Data$Data %>% dplyr::select(starts_with("Sp")) %>% mutate( . / rowSums(.))
-	apply(Comps_data,2,mean)
-
-	# Simulated depth distribution
+	## Simulated depth distribution
 	ggplot(Data$bathym) + geom_raster(aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c()
 
-	# Species movement
+	## Species abundance distribution
 	dim(Data$Biomass)  # dimension of year, month, grid cells, and species
 	Biomass_data <- as.data.frame.table(Data$Biomass)
 	colnames(Biomass_data) <- c("Year","Month","Grid_ID","Species","Resp")
@@ -72,11 +76,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   ggplot(Biomass_data %>% filter(Species == "Sp4", Year == 1), aes(x=X, y=Y, fill=Resp)) + geom_raster() +
     theme_bw() + facet_wrap(. ~ Month)
 
-
-
-	# Simulated depth distribution
-	# ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
-  # Simulated effort distribution in space
+  ## Plot the effort distribution in space
 	ggplot(data = Data$Data %>% filter(year == 10, month==11)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
 	  geom_point(aes(x=X, y=Y))
 
@@ -154,8 +154,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 
 
-
-########### Now that we have generated the data, it is time to fit different models
+#### Step3:  Now that we have generated the data, it is time to fit different models
 ## List of models to test:
 # gam
 # glmmTMB (tweedie)
