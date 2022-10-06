@@ -111,8 +111,9 @@ Sim1 <- list(
   samp_prob = 0.2,             # this is the sampling probability
   samp_unit = "vessel",        # the samping unit: "vessel" or "fishing" (i.e. random sample from all fishing events)
   samp_seed = 123,             # the seed for reproducibility of the samples taken
-  samp_mincutoff = 0,        # cut-off value to round values to 0
-  start_year = 5,
+  samp_mincutoff = 0,          # cut-off value to round values to 0
+  start_year = 5,              # when to start sampling from the fleet
+  months = c(11,12),           # the month from which you want to take the sample from
 
   ### Other OM control features
   plotting = FALSE,
