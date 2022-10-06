@@ -17,7 +17,7 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 
 	#### Set the pop mvt param from the simulation settings for each season (here month)
 	Par_mvt_adult <- lapply(1:12, function(x)
-	  rbind(Sim_Settings$Fish_dist_par1[x,], Sim_Settings$Fish_dist_par2, Sim_Settings$Fish_depth_par1[x,], Sim_Settings$Fish_depth_par2[x,], Sim_Settings$Fish_range_par1, Sim_Settings$Fish_range_par2));
+	  rbind(Sim_Settings$Fish_dist_par1[x,], Sim_Settings$Fish_dist_par2, Sim_Settings$Fish_depth_par1[x,], Sim_Settings$Fish_depth_par2[x,]));
 
 	#### Calculate the movement matrices
 	if (Sim_Settings$parallel == FALSE) Mvt_mat_adult <- lapply(1:12, function(x)
@@ -43,14 +43,13 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	}
 
 	Biomass <- array(NA, dim=c(Sim_Settings$n_years, 12, nrow(data.bathym), Sim_Settings$n_species))
-	Biomass[1,1,,] <- Pop_adult
+	Biomass[1,1,,] <- t(apply(Pop_adult,1,function(x) x*Sim_Settings$Pop_ratio_start))
 	Biomass[1,1,,] <- apply(Biomass[1,1,,], 2,function(x) replace(x, which(x<=0), 0))
 
 	### 2. Structuring the vessel dynamics
 
 	## generate total effort by year & month (total effort will be randomly sampled with log normal error around a logistic type function)
 	Effort <- array(0, dim=c(Sim_Settings$n_years, 12));
-	Mean_Effort <- array(0, dim=c(Sim_Settings$n_years, 12));
 	map.size <- length(Sim_Settings$Range_X)*length(Sim_Settings$Range_Y)
 	Effort_area_year <- array(0, dim=c(Sim_Settings$n_years, 12, map.size));
 
@@ -67,6 +66,10 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	which_regions <- t(sapply(rep(sum(Sim_Settings$Nregion),Sim_Settings$Nvessels), function(x) sample(1:sum(Sim_Settings$Nregion), x, replace=TRUE)))
 	areas <- equal_partition( expand.grid(X = Sim_Settings$Range_X, Y = Sim_Settings$Range_Y), Sim_Settings$Nregion[1], Sim_Settings$Nregion[2], Sim_Settings$Range_X, Sim_Settings$Range_Y)$area
 
+	# Keep track of the population abundance/number that left the fishing ground
+	Gone_outside <- array(0, dim=c(Sim_Settings$n_years, 12, 1, Sim_Settings$n_species))
+  Gone_total <- rep(0, Sim_Settings$n_species)  ## a dummy variable to keep track of the total population that left
+
 	#### Updating the population and generate catch data according to the above specifications
 	for (iyear in 1:Sim_Settings$n_years){
 	  for (month in 1:12){
@@ -77,16 +80,10 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	    if(Sim_Settings$Changing_preference==TRUE) Preference <- 2-exp(-0.1*iyear)
 
   		### Assigning total effort in a year
-  		Mean_Effort[iyear,] <- (Sim_Settings$Tot_effort/(1+exp(-0.1*iyear)))*Sim_Settings$Effort_alloc_month/sum(Sim_Settings$Effort_alloc_month)		# mean effort by year
-  		Effort[iyear,] <- trunc(rlnorm(12, log(Mean_Effort[iyear,]-Sig_effort^2/2), Sig_effort))		# effort by year
+	    Effort[iyear,] <- Sim_Settings$Tot_effort_year[iyear]*Sim_Settings$Effort_alloc_month/sum(Sim_Settings$Effort_alloc_month)		# mean effort by year
 
-  		### changing the catchability "qq" every year depending on whether a specific area is closed or not
-  		if (iyear>=Sim_Settings$year.depth.restriction){
-  			catchability <- rep(1,map.size)
-  			if(length(depth.restriction)==2) catchability <- replace(catchability, which(bathym >= Sim_Settings$depth.restriction[1] & bathym <= Sim_Settings$depth.restriction[2]), 0)
-  			if(depth.restriction== "random") catchability <- replace(catchability, sample(1:map.size, size=20), 0)
-  			qq <- catchability
-  		} else { qq <- Sim_Settings$qq_original }
+  		### Adjusting the catchability by month (if any deviation in catchability due to changes in the availability of a population)
+  		qq <- Sim_Settings$qq_original*Sim_Settings$Rangeshift_catchability_adjust[month,]
 
   		### Continuous catch equation - calculating the expected revenue
   		CPUE_tot[iyear,month,] <- apply(Biomass[iyear,month,,]*matrix((1-exp(-qq)), nrow=map.size, ncol=Sim_Settings$n_species, byrow=T) * matrix(Sim_Settings$price_fish[iyear,], nrow=map.size, ncol=Sim_Settings$n_species, byrow=T),1,sum)
@@ -160,7 +157,7 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	  }
 	 }
 
-	#### Return data                                                                # v.names="CPUE",
+	#### Return data
 
 	Return = list(Data= Catch_area_year_ind, Biomass=Biomass, bathym=data.bathym)
 	return(Return)
