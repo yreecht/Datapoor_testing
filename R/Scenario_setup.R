@@ -65,11 +65,22 @@ Sim1 <- list(
                              1, 0.5, 0.5, 1, # month11
                              1, 0.5, 0.5, 1),# month12
                            nrow=12, ncol=4, byrow=T),
-  Fish_range_par1 = rep(0, 4),                    # X-axis range min
-  Fish_range_par2 = rep(50,4),                    # X axis range max
-
+  Rangeshift_catchability_adjust = matrix(c(1, 1, 1, 1, # Adjust the catchability so that it mimics some changes in availability of the population (migration)
+                                            1, 1, 1, 1, # month2
+                                            1, 1, 1, 1, # month3
+                                            1, 1, 1, 1, # month4
+                                            1, 1, 1, 1, # month5
+                                            1, 1, 1, 0.1, # month6
+                                            1, 1, 1, 0.01, # month7
+                                            1, 1, 1, 0.01, # month8
+                                            1, 1, 1, 0.1, # month9
+                                            1, 1, 1, 1, # month10
+                                            1, 1, 1, 1, # month11
+                                            1, 1, 1, 1),# month12
+                                            nrow=12, ncol=4, byrow=T),                    #
   ## Species Schaefer pop dyn parameters
   B0 = c(10000,10000,10000,10000)*1000,	# based on petrale, dover, darkblotched, sablefish, maybe bird/marine mammal
+  Pop_ratio_start = c(1,1,1,1),          # this is the "rough" abundance of the population at the start of the simulation
   r = c(0.22, 0.17, 0.08, 0.15)/12,         # based on petrale, dover, darkblotched, sablefish (mt)
   sigma_p= c(0.4, 0.4, 0.4, 0.4),            # log-normal process error = recruitment to fishery
   sigma_p_timing= c(9, 9, 9, 9),               # when does recruitment happen?
@@ -78,8 +89,7 @@ Sim1 <- list(
   ### Parameters controlling the vessel dynamics
   Nregion = c(2,2),         # nb of fishing regions for the fishermen (equal cut of grid along X and Y)
   Nvessels = 50,					  # nb vessels
-  Tot_effort = 2000,				# end year nb of effort
-  CV_effort = 0.2, 					# CV of effort around the yearly mean effort
+  Tot_effort_year = rep(1000,15),		# The total effort by year (similar to your study case)
   qq_original = c(0.05,0.05,0.05,1e-5),			  # the average catchability coef by species for ALL vessels (does not mean anything. just a scaler)
   catch_trunc = c(0,0,0,1),			  # truncate value if 1 otherwise keep continuous
   CV_vessel = 0.0001,					# the between vessel variability in mean catchability
@@ -102,7 +112,7 @@ Sim1 <- list(
   start_year = 5,
 
   ### Other OM control features
-  plotting = TRUE,
+  plotting = FALSE,
   parallel = FALSE,
   Interactive = FALSE
 )

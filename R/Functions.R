@@ -61,8 +61,6 @@ Mvt_upd1 <- function(loc, Pop_param, Depth_eff, Dist_eff, Lat_eff, Depth_func, D
   Di2 <- Pop_param[2]  	# 2nd value for dist function
   De1 <- Pop_param[3]  	# 1st value for depth function
   De2 <- Pop_param[4]	 	# 2nd value for depth function
-  Lat1 <- Pop_param[5]  # 1st value for lat/long function
-  Lat2 <- Pop_param[6]	# 2nd value for lat/long function
 
   Dist <- sqrt((data.bathym$X-data.bathym$X[loc])^2+(data.bathym$Y-data.bathym$Y[loc])^2)
 
@@ -80,12 +78,12 @@ Mvt_upd1 <- function(loc, Pop_param, Depth_eff, Dist_eff, Lat_eff, Depth_func, D
   }
 
   Prob3 <- 1
-  if(Lat_eff=="TRUE"){
-    if(Lat_func=="Norm") Prob3 <- dnorm(data.bathym$X, Lat1, Lat2)
-    if(Lat_func=="Exp") Prob3 <- dexp(data.bathym$X, rate=1/Lat1)
-    if(Lat_func=="Lognorm") Prob3 <- dlnorm(data.bathym$X, (log(Lat1)-Lat2^2/2), Lat2)
-    if(Lat_func=="Unif") Prob3 <- dunif(data.bathym$X, Lat1, Lat2)
-  }
+  # if(Lat_eff=="TRUE"){
+  #   if(Lat_func=="Norm") Prob3 <- dnorm(data.bathym$X, Lat1, Lat2)
+  #   if(Lat_func=="Exp") Prob3 <- dexp(data.bathym$X, rate=1/Lat1)
+  #   if(Lat_func=="Lognorm") Prob3 <- dlnorm(data.bathym$X, (log(Lat1)-Lat2^2/2), Lat2)
+  #   if(Lat_func=="Unif") Prob3 <- dunif(data.bathym$X, Lat1, Lat2)
+  # }
 
   Prob <- Prob1*Prob2*Prob3/sum(Prob1*Prob2*Prob3)
   return(Prob)
