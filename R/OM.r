@@ -26,15 +26,15 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	# some ideas of setting
 	# Sim2$Fish_depth_par1 = c(120, 250, 150, 500) # bycatch species has similar distribution as another species
 	# Sim_Settings3$Fish_depth_par1 = c(120, 250, 450, 200) # bycatch species is distributed deeper than the main target
-	Sim2 <- Sim1
-	Sim2$SD_O = 150
-	Sim2$SpatialScale = 15
-	Sim2$sigma_p= c(1, 1, 1, 0.5)
-	Sim2$CV_vessel= 0.1
+	# Sim2 <- Sim1
+	# Sim2$SD_O = 150
+	# Sim2$SpatialScale = 15
+	# Sim2$sigma_p= c(1, 1, 1, 0.5)
+	# Sim2$CV_vessel= 0.1
 
 	## Running the simulation model with the user-specified configurations
 	system.time(
-	  Data <- Generate_scenario_data(Sim_Settings = Sim2, seed_input=12)
+	  Data <- Generate_scenario_data(Sim_Settings = Sim1, seed_input=12)
   )
 
 
