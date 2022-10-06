@@ -51,9 +51,25 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	Comps_data <- Data$Data %>% dplyr::select(starts_with("Sp")) %>% mutate( . / rowSums(.))
 	apply(Comps_data,2,mean)
 
-
 	# Simulated depth distribution
 	ggplot(Data$bathym) + geom_raster(aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c()
+
+	# Species movement
+	dim(Data$Biomass)  # dimension of year, month, grid cells, and species
+	Biomass_data <- as.data.frame.table(Data$Biomass)
+	colnames(Biomass_data) <- c("Year","Month","Grid_ID","Species","Resp")
+	Biomass_data <- Biomass_data %>% mutate(Year = as.numeric(Year),
+	                                        Month = as.numeric(Month),
+	                                        Grid_ID = as.numeric(Grid_ID),
+	                                        Species = factor(Species, labels=paste0("Sp", 1:Sim2$n_species)))
+	Biomass_data$X <- Biomass_data$Grid_ID %% length(Sim2$Range_X)
+	Biomass_data$X <- ifelse(Biomass_data$X ==0, 40, Biomass_data$X)
+	Biomass_data$Y <- trunc((Biomass_data$Grid_ID-1) / length(Sim2$Range_X)) + 1
+
+  ggplot(Biomass_data %>% filter(Species == "Sp4", Year == 1), aes(x=X, y=Y, fill=Resp)) + geom_raster() +
+    theme_bw() + facet_wrap(. ~ Month)
+
+
 
 	# Simulated depth distribution
 	# ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
