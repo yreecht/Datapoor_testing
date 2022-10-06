@@ -37,19 +37,19 @@ Sim1 <- list(
   func_mvt_depth = c(rep("Lognorm", Nsp)),    # shape of depth preference p_function (choice of Normal, Exp, Lognormal, Uniform)
   func_mvt_lat = c(rep("Unif", Nsp)),					# shape of range preference p_function (choice of Normal, Exp, Lognormal, Uniform)
 
-  Fish_dist_par1 = matrix(c(5, 10, 6, 5, 3, 3, # mvt distance mean - their mobility within month1 only values >0
+  Fish_dist_par1 = matrix(c(5, 10, 6, 5, 3, 5, # mvt distance mean - their mobility within month1 only values >0
                             5, 10, 6, 5, 3, 3, # month2   only values >0 Values for target species somewhat arbitrary.
                             5, 10, 6, 5, 3, 3, # month3   only values >0
                             5, 10, 6, 5, 3, 3, # month4   only values >0
                             5, 10, 6, 5, 3, 3, # month5   only values >0
-                            5, 10, 6, 5, 3, 3, # month6   only values >0
+                            5, 10, 6, 5, 5, 5, # month6   only values >0 Increased mobility before (and after) reproduction
                             5, 10, 6, 5, 2, 2, # month7   only values >0
-                            5, 10, 6, 5, 2, 1, # month8   only values >0 males A. wolffish not moving while caring for offspring.
-                            5, 10, 6, 5, 2, 1, # month9   only values >0
-                            5, 10, 6, 5, 2, 1, # month10  only values >0
-                            5, 10, 6, 5, 3, 1, # month11  only values >0
+                            5, 10, 6, 5, 2, 0.5, # month8   only values >0 males A. wolffish not moving while caring for offspring.
+                            5, 10, 6, 5, 2, 0.5, # month9   only values >0
+                            5, 10, 6, 5, 2, 0.5, # month10  only values >0
+                            5, 10, 6, 5, 5, 0.5, # month11  only values >0
                             5, 10, 6, 5, 3, 2),# month12  only values >0
-                            nrow=12, ncol=Nsp, byrow = TRUE),
+                            nrow=12, ncol = Nsp, byrow = TRUE),
   Fish_dist_par2 = rep(0, Nsp), 										# mvt distance (not used)
   Fish_depth_par1 = matrix(c(87, 100, 95, 200, 140, 140, # depth preference mean per month 1
                              87, 100, 95, 200, 140, 140, # month2
@@ -76,18 +76,19 @@ Sim1 <- list(
                              0.63, 0.57, 0.59, 0.35, 0.48, 0.48, # month10
                              0.63, 0.57, 0.59, 0.35, 0.9, 0.48, # month11
                              0.63, 0.57, 0.59, 0.35, 0.9, 0.48),# month12
-                           nrow=12, ncol=Nsp, byrow = TRUE),
+                           nrow=12, ncol = Nsp, byrow = TRUE),
   Fish_range_par1 = rep(0, Nsp),                    # X-axis range min
   Fish_range_par2 = rep(50,Nsp),                    # X axis range max
 
   ## Species Schaefer pop dyn parameters
   B0 = c(80000000, 220000000, 148000000 + 460000000,	# NEA Haddock, saithe, cod (NEA+coastal),
-         68600000, c(10000,10000) * 1000 / 2),            # golden redfish, and atlantic wolffish (1/2)x2 (~ about 1
+         68600000,                                    # golden redfish,
+         c(10000,10000) * 1000 / 2),                  # and atlantic wolffish (1/2)x2 (~ about 1
                                         # order of magnitude lower).
   r = c(0.175, 0.175, 0.2,
         0.02625, rep(0.14, 2)) / 12, # NEA Haddock, saithe, cod (NEA+coastal), golden redfish, and atlantic wolffish (1/2)x2
-  sigma_p = c(0.7, 0.46, 0.31,       # NS saithe as based on R table, unlike NEA.
-              1.08, rep(0.5, 2)),    # log-normal process error = recruitment to fishery
+  sigma_p = c(0.688, 0.45, 0.31,       # NS saithe as based on R table, unlike NEA.
+              1.198, rep(0.5, 2)),    # log-normal process error = recruitment to fishery
                                         # Arbitrary for wolffish
   sigma_p_timing= c(4, 3, 2, 4, rep(8, 2)),               # when does recruitment happen?
   fish.mvt = TRUE,				                        # whether animals redistribute annually based on habitat preference

@@ -46,10 +46,10 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	# Simulated depth distribution
 	ggplot(Data$bathym) + geom_raster(aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c()
 	# Simulated depth distribution
-                                        # ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
+  ## ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
 
   # Simulated effort distribution in space
-	ggplot(data = Data$Data %>% filter(year == 10, month==8)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
+	ggplot(data = Data$Data %>% filter(year == 10, month==9)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
 	  geom_point(aes(x=X, y=Y))
 
 dim(Data$Biomass)
@@ -122,7 +122,7 @@ lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,
 ##### generating single species data (for single species models)
   Final_data_df$vessel_fct <- as.factor(Final_data_df$vessel)
 
-  Which_sp <- "Sp4"
+  Which_sp <- "Sp6"
 
   Final_data_bycatch = Final_data_df %>% filter(Species == Which_sp)
   Final_data_bycatch$year_fct <- as.factor(Final_data_bycatch$year)
