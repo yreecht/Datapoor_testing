@@ -470,7 +470,7 @@
   ##' @details
   ##' @example
   ##'
-  ##' library(field)
+  ##' library(fields)
   ##' model_bathym <- RMgauss(var=150^2, scale=25)
   ##' map_grid <- expand.grid(X=1:40, Y=1:40)
   ##' Bathym <- RFsimulate(model_bathym, x=map_grid)
@@ -491,14 +491,14 @@
     plot(m)
     library(gstat)
     v <- variogram(resp~1, inputdata)#create a variogram of the sorting data
-    m <- fit.variogram(v, vgm(psill=m$var_model[2,2], model=as.character(m$var_model[2,1]), range=m$var_model[2,3], nugget =m$var_model[1,2], kappa=m$var_model[2,4]))    #fit a model to the variogram
+    m <- vgm(psill=m$var_model[2,2], model=as.character(m$var_model[2,1]), range=m$var_model[2,3], nugget =m$var_model[1,2], kappa=m$var_model[2,4])   #fit a model to the variogram
     plot(v, model= m)
 
     outputdata$resp <- NA
     coordinates(outputdata) <- ~ X + Y
     g <- gstat(id = "resp", formula = resp~1, data=inputdata, model = m, nmax=5)
     library(raster)
-    vals=predict(g, newdata=outputdata)
+    vals=predict(g, newdata=outputdata, nsim = 1)
     xyz <- data.frame(vals@coords, resp=vals@data$resp.pred)
     colnames(xyz) <- c("X", "Y", "depth")
     return(xyz)
@@ -541,5 +541,48 @@ range2logNparams <- function(mean.depth, min.depth, max.depth, prob = 0.95)
              logsd = diff(log(c(min.depth, max.depth))) / (2 * d),
              min = min.depth, max = max.depth, prob = prob))
 }
+
+
+
+
+########################################################
+## Function for estimating p.max from the Tweedie
+## haulData - input data with the WK format at trip/haul level
+## SPP1 - species information (e.g. weight discarded)
+
+# libraries
+
+library(tweedie); citation("tweedie") #Tweddie distribution
+library(statmod); citation ("statmod") # Provides  tweedie  family functions
+
+######
+### Fit the tweedie distribution
+#
+## Arguments:
+# link.power=0 (the default) refers to the logarithm link function
+
+# p.vec: a vector of 'p' values for consideration. The values must all be larger than one (if the response variable has exact zeros, the values must all be between one and two)
+
+# method: the method for computing the (log-) likelihood; "inversion" is the default)
+
+# do.ci: logical flag. If TRUE, the nominal 100*conf.level is computed
+
+# do.smooth: logical flag. If TRUE (the default), a spline is fitted to the data to smooth the profile likelihood plot. If FALSE, no smoothing is used (and the function is quicker). Note that p.vec must contain at least five points for smoothing to be allowed.
+
+# phi.method: the method for estimating phi, one of "saddlepoint" or "mle";
+
+# p.max (the estimate of the mle of p);
+
+out <- tweedie.profile(haulData$SPP1_d ~ 1, link.power=0, p.vec=seq(1.01, 1.9, length=9), method="inversion", do.ci=TRUE, do.smooth=TRUE, do.plot=TRUE, phi.method="mle")
+
+p <- out$p.max
+p
+
+
+
+
+
+
+
 
 

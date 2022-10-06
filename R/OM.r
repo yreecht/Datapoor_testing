@@ -43,6 +43,9 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	# The range of values of catch for each species
 	apply(Data$Data, 2, range)
 
+	# How many regions
+	table(Data$Data$Area, Data$Data$Vessel)
+
 	# Making a histogram of the catch
 	Data_long <- pivot_longer(Data$Data, cols = starts_with("Sp"), names_to = "Species", values_to = "Catch")
 	ggplot(Data_long, aes(x=Catch)) + facet_grid(.~Species) + geom_histogram() + theme_bw()
