@@ -87,7 +87,7 @@ Sim1 <- list(
   fish.mvt = TRUE,				                        # whether animals redistribute annually based on habitat preference
 
   ### Parameters controlling the vessel dynamics
-  Nregion = c(2,2),         # nb of fishing regions for the fishermen (equal cut of grid along X and Y)
+  Nregion = c(1,1),         # nb of fishing regions for the fishermen (equal cut of grid along X and Y)
   Nvessels = 50,					  # nb vessels
   Tot_effort_year = rep(1000,15),		# The total effort by year (similar to your study case)
   qq_original = c(0.05,0.05,0.05,1e-5),			  # the average catchability coef by species for ALL vessels (does not mean anything. just a scaler)
@@ -102,14 +102,18 @@ Sim1 <- list(
   phi = c(0.5,0.5,0.5,0.5), # the scaler of the tweedie distribution
   Preference = 1, 					# controls how effort concentrate into areas. The higher, the more concentrated is the effort
   Changing_preference = FALSE, 		# whether effort concentration changes over time
-
+  Discard_rate_beta1 = c(0,0,0.5,0.5),    # the mean discard rate (of a beta dsitribution). for a 100% discard rate write 1, for 0% discard rate write 0
+  Discard_rate_beta2 = c(0,0,0.5,0.5),    # the variance of the discard rate (of a beta dsitribution). for a 100% discard rate write 0, for 0% discard rate write 0
+  Discard_survival_rate1= c(0,0,0.5,0.5),   # the mean survival rate (of a beta dsitribution). for a 100% survival rate write 1, for 0% discard rate write 0
+  Discard_survival_rate2= c(0,0,0.5,0.5),   # the variance  survival rate (of a beta dsitribution). for a 100% survival rate write 0, for 0% discard rate write 0
 
   ### Parameter controlling the resampling procedure from the whole fleet
   samp_prob = 0.2,             # this is the sampling probability
   samp_unit = "vessel",        # the samping unit: "vessel" or "fishing" (i.e. random sample from all fishing events)
   samp_seed = 123,             # the seed for reproducibility of the samples taken
-  samp_mincutoff = 0,        # cut-off value to round values to 0
-  start_year = 5,
+  samp_mincutoff = 0,          # cut-off value to round values to 0
+  start_year = 5,              # when to start sampling from the fleet
+  months = c(11,12),           # the month from which you want to take the sample from
 
   ### Other OM control features
   plotting = FALSE,

@@ -67,8 +67,8 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	areas <- equal_partition( expand.grid(X = Sim_Settings$Range_X, Y = Sim_Settings$Range_Y), Sim_Settings$Nregion[1], Sim_Settings$Nregion[2], Sim_Settings$Range_X, Sim_Settings$Range_Y)$area
 
 	# Keep track of the population abundance/number that left the fishing ground
-	Gone_outside <- array(0, dim=c(Sim_Settings$n_years, 12, 1, Sim_Settings$n_species))
-  Gone_total <- rep(0, Sim_Settings$n_species)  ## a dummy variable to keep track of the total population that left
+# 	Gone_outside <- array(0, dim=c(Sim_Settings$n_years, 12, 1, Sim_Settings$n_species))
+#   Gone_total <- rep(0, Sim_Settings$n_species)  ## a dummy variable to keep track of the total population that left
 
 	#### Updating the population and generate catch data according to the above specifications
 	for (iyear in 1:Sim_Settings$n_years){
@@ -125,6 +125,48 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
   		}
 
   		Catch_area_year_ind <- rbind(Catch_area_year_ind, AA)
+  		Catch_area_year_ind <- Catch_area_year_ind %>% as.data.frame()
+  		### Now dividing the above catch based on the discard rate to "landed" (kept) and "discarded"
+  		### then the survival rate determines how much of the discard rejoins the population
+
+  		  ## Including the discard rate
+    		Catch_area_year_ind_discard <- Catch_area_year_ind %>% as.data.frame() %>%
+    		    dplyr::select(starts_with("Sp"))
+    		for (sp in 1:Sim_Settings$n_species){
+    		  Mean = Sim_Settings$Discard_rate_beta1[sp]
+    		  Var = Sim_Settings$Discard_rate_beta2[sp]
+    		  shape1 = (Var - Mean*(1-Mean))/(Mean * Var)
+    		  shape2 = (Var - Mean*(1-Mean))/(Mean * Var)*(1-Mean)
+    		  Catch_area_year_ind_discard[,sp] <- Catch_area_year_ind_discard[,sp]*ifelse(Var==0, Mean, rbeta(nrow(Catch_area_year_ind_discard),shape1, shape2))
+    		  if (Sim_Settings$catch_trunc[sp] == 1) Catch_area_year_ind_discard[,sp] <- trunc(Catch_area_year_ind_discard[,sp])
+    		}
+    		colnames(Catch_area_year_ind_discard) <- paste0("Sp", 1:Sim_Settings$n_species, "_disc")
+
+    		Catch_area_year_ALL <- cbind(Catch_area_year_ind, Catch_area_year_ind_discard)
+
+  		  ## Including the survival rate to calculate amount (either mass or number) that survived
+    		Catch_area_year_ind_survived <- Catch_area_year_ind_discard
+    		for (sp in 1:Sim_Settings$n_species){
+    		  Mean_surv = Sim_Settings$Discard_survival_rate1[sp]
+    		  Var_surv = Sim_Settings$Discard_survival_rate2[sp]
+    		  shape1_surv = (Var_surv - Mean_surv*(1-Mean_surv))/(Mean_surv * Var_surv)
+    		  shape2_surv = (Var_surv - Mean_surv*(1-Mean_surv))/(Mean_surv * Var_surv)*(1-Mean_surv)
+    		  Catch_area_year_ind_survived[,sp] <- Catch_area_year_ind_discard[,sp]*ifelse(Var_surv==0, Mean_surv, rbeta(nrow(Catch_area_year_ind_discard),shape1_surv, shape2_surv))
+    		  if (Sim_Settings$catch_trunc[sp] == 1) Catch_area_year_ind_survived[,sp] <- trunc(Catch_area_year_ind_survived[,sp])
+    		}
+
+    		## Putting back these surviving individual to the sea = biomass
+    		for (sp in 1:Sim_Settings$n_species){
+    		  where_survived <- which(Catch_area_year_ind_survived[,sp]>0)
+    		  if (length(where_survived) > 0) {
+    		    for (iii in where_survived) {
+    		      grid_cell <- Convert_grid_coordinates(X=Catch_area_year_ind$X[iii], Y=Catch_area_year_ind$Y[iii], Settings=Sim_Settings)
+    		      Biomass[iyear,month,grid_cell,sp] <- Biomass[iyear,month,grid_cell,sp] + Catch_area_year_ind_survived[iii,sp]
+    		    }
+    		  }
+    		}
+
+
   		Catch_area_year[iyear,month,,] <- Catch_year_area_mat
 
      	### Then update the population = growth & catch, then at a specific month, we have the process error (e.g. rec dev)
@@ -153,12 +195,13 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
   		  Biomass[iyear+1,1,,] <- apply(Biomass[iyear+1,1,,],2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
   		}
 
-  		if (Sim_Settings$Interactive == TRUE) print(iyear)
 	  }
+	  if (Sim_Settings$Interactive == TRUE) print(iyear)
+
 	 }
 
 	#### Return data
 
-	Return = list(Data= Catch_area_year_ind, Biomass=Biomass, bathym=data.bathym)
+	Return = list(Data= Catch_area_year_ALL, Biomass=Biomass, bathym=data.bathym)
 	return(Return)
 }
