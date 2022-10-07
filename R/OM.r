@@ -23,12 +23,18 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   source("R/Scenario_setup.R")            ## The main file to set-up the operating model i.e. configuring the population parameters and the fleet dynamics
 
 
+##########################################################################################
 #### Step1: Running the simulation model with the user-specified configurations from "Scenario_setup.R" file
-	system.time(
+##########################################################################################
+  system.time(
 	  Data <- Generate_scenario_data(Sim_Settings = Sim1, seed_input=12)
   )
 
+
+
+##########################################################################################
 #### Step2: If the above model runs, then we need to adjust its parameters to match the pattern observed in the real data
+##########################################################################################
 
 	Data$Data <- as.data.frame(Data$Data)
 
@@ -47,10 +53,10 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	Comps_data <- Data$Data %>% dplyr::select(starts_with("Sp"))
 	library(cluster)
 	clusters <- pam(Comps_data, k=3)
+  clusters$medoids
 
 
-
-  ### Other explorative analysis 6 plots
+  ### Other explorative analysis & plots
 	## How many regions
 	table(Data$Data$Area, Data$Data$Vessel)
 
@@ -81,7 +87,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	  geom_point(aes(x=X, y=Y))
 
 
-#### Calculate the true index
+  #### Follow how the population abundance is changing during the simulation time
 	Average_monthly_biomass <- apply(Data$Biomass, c(1,2,4), sum)
 	plot(1:Sim2$n_years, Average_monthly_biomass[,1,1]/Average_monthly_biomass[1,1,1], type="l", ylim=c(0,1.5))
 	lines(1:Sim2$n_years, Average_monthly_biomass[,1,2]/Average_monthly_biomass[1,1,2], col = "red")
@@ -92,9 +98,20 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   colnames(true_index) <- paste0("Sp", 1:Sim2$n_species)
 
 
-#### Perform the sample selection
-  Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = Sim2$samp_prob, unit=Sim2$samp_unit, seed=Sim2$samp_seed, months = c(11:12))
-  Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = 0.2, unit=Sim2$samp_unit, seed=2, months = c(11:12))
+##########################################################################################
+#### Step3: Once the simulation model is adjusted and produces reasonable data
+####        it is now time to mimic the sampling process to generate the study data
+####        and then compare the performance of different estimation methods
+##########################################################################################
+
+ ### General info:
+ ### This is the place by excellence to repeat the sampling process multiple time (N>100)
+ ### by changing the seed value in the "sampling_select" function or other sampling parameters
+ ### to learn about the GENERAL behavior of the model i.e. is the model biased?
+
+
+ ### Step3.1: Perform the sample selection
+  Final_data <- sampling_select(data = Data$Data, percent = Sim2$samp_prob, unit=Sim2$samp_unit, seed=1, months = Sim2$months)
 
   Year_adj <- 1   # if the data is taken towards the end of the year, add the year adjustement factor
 
@@ -122,7 +139,7 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
   plot_fishing(Final_data, years = seq(1, Sim2$n_years, by=5))
 
 
-#### projection grid
+#### projection grid (need this to make prediction)
   qcs_grid <- do.call(rbind, replicate(Sim2$n_years, Data$bathym, simplify=FALSE))
   qcs_grid$year <- as.numeric(rep(1:Sim2$n_years, each=nrow(Data$bathym)))
   qcs_grid$vessel <- unique(Final_data_df$vessel)[1]
@@ -154,22 +171,19 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 
 
 
-#### Step3:  Now that we have generated the data, it is time to fit different models
+#### Step3.2:  Now that we have generated the data, it is time to fit different models
 ## List of models to test:
 # gam
 # glmmTMB (tweedie)
 # glmmTMB - zeroinflated models
-# student-t distribution with long tails with possible zero-inflation (code in TMB)
-# mixture model
 # randomforest: ranger
 # boosted regression tree: gbm
 # sdmTMB
 # multispecies model with fishing behavior (tweedie)
 
-## to include
-  # flexSDM package to test (not a priority but the types of model included)
-  # neural network: neuralnet & keras
-  # spatial model with fishing tactics
+## we might to aslo investigate to include
+## neural network: neuralnet & keras
+## spatial model with fishing tactics
 
 ####### gam:
   library(mgcv)

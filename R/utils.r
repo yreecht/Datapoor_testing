@@ -545,38 +545,39 @@ range2logNparams <- function(mean.depth, min.depth, max.depth, prob = 0.95)
 
 
 
+
+
 ########################################################
-## Function for estimating p.max from the Tweedie
-## haulData - input data with the WK format at trip/haul level
-## SPP1 - species information (e.g. weight discarded)
+##' Function for estimating the two input values (phi and xi)
+##' required for the tweedie distribution in the simulation
+##'
+##' Arguments:
+##' @haulData - input data with the WK format at trip/haul level
+##' @SPP1 - species information (e.g. weight discarded) = the column name in the haulData
+##' @link.power=0 (the default) refers to the logarithm link function
+##' @p.vec: a vector of 'p' values for consideration. The values must all be larger than one (if the response variable has exact zeros, the values must all be between one and two)
+##' @method: the method for computing the (log-) likelihood; "inversion" is the default)
+##' @do.ci: logical flag. If TRUE, the nominal 100*conf.level is computed
+##' @do.smooth: logical flag. If TRUE (the default), a spline is fitted to the data to smooth the profile likelihood plot. If FALSE, no smoothing is used (and the function is quicker). Note that p.vec must contain at least five points for smoothing to be allowed.
+##' @phi.method: the method for estimating phi, one of "saddlepoint" or "mle";
+##' @p.max (the estimate of the mle of p); 'xi' in 'Scenario_setup.R'
+##' @phi.max (the estimate of phi at p.max); 'phi' in 'Scenario_setup.R'
 
 # libraries
+Find_tweedie <- function(haulData, SPP1="SPP1_d", link.power=0, p.vec=seq(1.01, 1.9, 0.01), method="inversion", do.ci=TRUE, do.smooth=TRUE, do.plot=TRUE, phi.method="mle"){
+  library(tweedie); citation("tweedie") #Tweddie distribution
+  library(statmod); citation ("statmod") # Provides  tweedie  family functions
+  haulData$resp <- haulData[,SPP1]
+  out <- tweedie.profile(haulData$resp ~ 1, link.power, p.vec, method, do.ci, do.smooth, do.plot, phi.method)
+  xi <- out$p.max; xi
+  phi <- out$phi.max; phi
 
-library(tweedie); citation("tweedie") #Tweddie distribution
-library(statmod); citation ("statmod") # Provides  tweedie  family functions
+  return(data.frame(xi=xi, phi=phi))
+}
 
-######
-### Fit the tweedie distribution
-#
-## Arguments:
-# link.power=0 (the default) refers to the logarithm link function
 
-# p.vec: a vector of 'p' values for consideration. The values must all be larger than one (if the response variable has exact zeros, the values must all be between one and two)
 
-# method: the method for computing the (log-) likelihood; "inversion" is the default)
 
-# do.ci: logical flag. If TRUE, the nominal 100*conf.level is computed
-
-# do.smooth: logical flag. If TRUE (the default), a spline is fitted to the data to smooth the profile likelihood plot. If FALSE, no smoothing is used (and the function is quicker). Note that p.vec must contain at least five points for smoothing to be allowed.
-
-# phi.method: the method for estimating phi, one of "saddlepoint" or "mle";
-
-# p.max (the estimate of the mle of p);
-
-out <- tweedie.profile(haulData$SPP1_d ~ 1, link.power=0, p.vec=seq(1.01, 1.9, length=9), method="inversion", do.ci=TRUE, do.smooth=TRUE, do.plot=TRUE, phi.method="mle")
-
-p <- out$p.max
-p
 
 
 
