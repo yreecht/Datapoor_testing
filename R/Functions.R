@@ -186,8 +186,8 @@ plot_fishing <- function(data, years, ...){
 ##'
 equal_partition <- function(data, ncut_x=2, ncut_y=2, Range_X, Range_Y){
   out <- expand.grid(X = Range_X, Y = Range_Y)
-  out <- out %>% mutate(X_cut = factor(cut(X, ncut_x), labels=c(1:ncut_x)),
-                        Y_cut = factor(cut(Y, ncut_y), labels=c(1:ncut_y)))
+  if (ncut_x>1) out <- out %>% mutate(X_cut = factor(cut(X, ncut_x), labels=c(1:ncut_x))) else out <- out %>% mutate(X_cut = rep(1, length(X)))
+  if (ncut_y>1) out <- out %>% mutate(Y_cut = factor(cut(Y, ncut_y), labels=c(1:ncut_y))) else out <- out %>% mutate(Y_cut = rep(1, length(Y)))
   area <- as.factor(apply(out[,3:4], 1, function(x) paste(x, collapse="_")))
   area <- factor(area, labels = 1:(ncut_x*ncut_y))
   area <- data.frame(X=out$X, Y=out$Y, area)
@@ -197,5 +197,24 @@ equal_partition <- function(data, ncut_x=2, ncut_y=2, Range_X, Range_Y){
 }
 
 
+##' Convenience function to move from gridID (cell ID) to X, Y coordinates and vice versa
+##'
+##' @param gridID is the gridID (write this is you want to )
+##' @param X is the X coordinate of the gridID
+##' @param Y is the Y coordinate of the gridID
+##'
+##' @details
+##' @example
+##'
+Convert_grid_coordinates <- function(GridID=NULL, X=NULL, Y=NULL, Settings){
+  if (!is.null(GridID)) {
+    X = ((GridID-1) %% length(Settings$Range_X)) + 1
+    Y = trunc((GridID-1) / length(Settings$Range_X)) + 1
+    return(c(X,Y))
+  } else {
+    GridID = (Y-1)*length(Settings$Range_X) + X
+    return(GridID)
+  }
+}
 
 
