@@ -79,12 +79,26 @@ Sim1 <- list(
                            nrow=12, ncol = Nsp, byrow = TRUE),
   Fish_range_par1 = rep(0, Nsp),                    # X-axis range min
   Fish_range_par2 = rep(50,Nsp),                    # X axis range max
+  Rangeshift_catchability_adjust = matrix(c(1, 1, 1, 1, 1, 1, # Adjust the catchability so that it mimics some changes in availability of the population (migration)
+                                            1, 1, 1, 1, 1, 1, # month2
+                                            1, 1, 1, 1, 1, 1, # month3
+                                            1, 1, 1, 1, 1, 1, # month4
+                                            1, 1, 1, 1, 1, 1, # month5
+                                            1, 1, 1, 1, 1, 1, # month6
+                                            1, 1, 1, 1, 1, 1, # month7
+                                            1, 1, 1, 1, 1, 0.4, # month8
+                                            1, 1, 1, 1, 1, 0.4, # month9
+                                            1, 1, 1, 1, 1, 0.4, # month10
+                                            1, 1, 1, 1, 1, 0.4, # month11
+                                            1, 1, 1, 1, 1, 0.4),# month12
+                                            nrow=12, ncol= Nsp, byrow = TRUE),
 
   ## Species Schaefer pop dyn parameters
   B0 = c(80000000, 220000000, 148000000 + 460000000,	# NEA Haddock, saithe, cod (NEA+coastal),
          68600000,                                    # golden redfish,
          c(10000,10000) * 1000 / 2),                  # and atlantic wolffish (1/2)x2 (~ about 1
                                         # order of magnitude lower).
+  Pop_ratio_start = rep(0.5, Nsp),          # this is the "rough" abundance of the population at the start of the simulation
   r = c(0.175, 0.175, 0.2,
         0.02625, rep(0.14, 2)) / 12, # NEA Haddock, saithe, cod (NEA+coastal), golden redfish, and atlantic wolffish (1/2)x2
   sigma_p = c(0.688, 0.45, 0.31,       # NS saithe as based on R table, unlike NEA.
@@ -96,7 +110,8 @@ Sim1 <- list(
   ### Parameters controlling the vessel dynamics
   Nregion = c(2,2),         # nb of fishing regions for the fishermen (equal cut of grid along X and Y)
   Nvessels = 50,					  # nb vessels
-  Tot_effort = 2000,				# end year nb of effort
+  Tot_effort = 2000,
+  Tot_effort_year = seq(1000, 2000, length.out = 15),				# end year nb of effort
   CV_effort = 0.2, 					# CV of effort around the yearly mean effort
   qq_original = c(0.05, 0.05, 0.05, 0.05, 1e-4, 1e-4) * 1e-3,			  # the average catchability coef by species for ALL vessels (does not mean anything. just a scaler)
   catch_trunc = c(rep(0, 6)),			  # truncate value if 1 otherwise keep continuous

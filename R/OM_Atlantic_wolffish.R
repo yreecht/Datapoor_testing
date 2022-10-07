@@ -48,16 +48,27 @@ pacman::p_load(parallel, MASS, RandomFields, fields, geoR, gtools, tweedie, ggpl
 	# Simulated depth distribution
   ## ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
 
+X11()
   # Simulated effort distribution in space
 	ggplot(data = Data$Data %>% filter(year == 10, month==9)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
-	  geom_point(aes(x=X, y=Y))
+      geom_point(aes(x=X, y=Y))
+
+ggY10 <- sapply(1:12,
+                function(mo)
+         {
+             ggtmp <- ggplot(data = Data$Data %>% filter(year == 10, month==mo)) +
+                 geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) +
+                 scale_fill_viridis_c() +
+                 geom_point(aes(x=X, y=Y))
+             ggsave(ggtmp, file = file.path("Results", paste0("Fishing_y10_mo", mo, ".png")))
+         })
 
 dim(Data$Biomass)
 
 #### Calculate the true index
 X11()
 	Average_monthly_biomass <- apply(Data$Biomass, c(1,2,4), sum)
-	plot(1:Sim2$n_years, Average_monthly_biomass[,1,1]/Average_monthly_biomass[1,1,1], type="l", ylim=c(0,1.5))
+	plot(1:Sim2$n_years, Average_monthly_biomass[,1,1]/Average_monthly_biomass[1,1,1], type="l", ylim=c(0,1.5), col = "orange")
 	lines(1:Sim2$n_years, Average_monthly_biomass[,1,2]/Average_monthly_biomass[1,1,2], col = "red")
 	lines(1:Sim2$n_years, Average_monthly_biomass[,1,3]/Average_monthly_biomass[1,1,3], col = "blue")
 lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,4], col = "green")
@@ -89,7 +100,7 @@ lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,
                           month_fct = as.factor(month),
                           vessel_fct = as.factor(vessel))
 
-
+X11()
   Final_data_df <- Final_data %>% pivot_longer(cols = starts_with("Sp"), names_to = "Species", values_to = "CPUE_trunc")
   table(Final_data_df$CPUE_trunc==0)/nrow(Final_data_df)
   ggplot(Final_data_df %>% filter(Species == "Sp1"), aes(x=CPUE_trunc)) + geom_histogram(bins=100) + theme_bw()
@@ -149,6 +160,7 @@ lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,
   # neural network: neuralnet & keras
   # spatial model with fishing tactics
 
+X11()
 ####### gam:
   library(mgcv)
   gam1 <- gam(CPUE_trunc ~ 0 + as.factor(year) + as.factor(area) +  s(depth_scl) +
@@ -183,7 +195,7 @@ lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,
     geom_line(data = data.frame(IA=true_index[-c(1:(Sim2$start_year-1)),Which_sp]/true_index[Sim2$start_year+Year_adj,Which_sp], year =Sim2$start_year:Sim2$n_years), col="red", size=2)+
     theme_bw()+ coord_cartesian(ylim=c(0,1.5))
 
-
+X11()
 ####### glmmTMB
   library(glmmTMB)
   library(splines)
@@ -220,7 +232,7 @@ lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,
     geom_line(data = data.frame(IA=true_index[-c(1:(Sim2$start_year-1)),Which_sp]/true_index[Sim2$start_year+Year_adj,Which_sp], year =Sim2$start_year:Sim2$n_years), col="red", size=2)+
     theme_bw()+ coord_cartesian(ylim=c(0,1.5))
 
-
+X11()
   ####### Spatial model: sdmTMB to the data
   library(sdmTMB)
   mesh <- make_mesh(Final_data_bycatch, xy_cols = c("X", "Y"), cutoff = 5)
