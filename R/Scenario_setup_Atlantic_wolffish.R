@@ -115,10 +115,13 @@ Sim1 <- list(
   ### Parameters controlling the vessel dynamics
   Nregion = c(2,2),         # nb of fishing regions for the fishermen (equal cut of grid along X and Y)
   Nvessels = 50,					  # nb vessels
-  Tot_effort = 2000,
-  Tot_effort_year = seq(500, 2000, length.out = 15),				# end year nb of effort
+  Tot_effort = 1000,				# end year nb of effort
+  Tot_effort_year = seq(1000, 1000, length.out = 15),
   CV_effort = 0.2, 					# CV of effort around the yearly mean effort
-  qq_original = c(0.05, 0.05, 0.05, 0.05, 1e-4, 1e-4) * 1e-3,			  # the average catchability coef by species for ALL vessels (does not mean anything. just a scaler)
+  qq_original = c(0.0035, 0.0275, 0.0245,
+                  0.0165, rep(0.00158 / 2, 2)) * 1e-3, # the average catchability coef by species for ALL vessels
+                                        # (does not mean anything. just a scaler)
+                                        # Estimated to approximately match 2021 catches with an arbitrary 1000 effort
   catch_trunc = c(rep(0, 6)),			  # truncate value if 1 otherwise keep continuous
   CV_vessel = 0.1,					# the between vessel variability in mean catchability
   vessel_seeds = 10,        # this creates heterogeneity in the sampled vessels

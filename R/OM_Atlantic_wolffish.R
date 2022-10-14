@@ -119,11 +119,19 @@ library(tidyr)
 
 Data$Data %>%
     group_by(year) %>%
+    select(! ends_with("disc")) %>%
     summarise(across(starts_with("Sp"), ~sum(.x, na.rm = TRUE))) %>%
-    mutate(wolffish = Sp5 + Sp6,
-           wolffish_disc = Sp5_disc + Sp6_disc) %>%
+    mutate(wolffish = Sp5 + Sp6) %>%
     as.data.frame()
 
+## Check that matches the sales notes with effort 1000, or adjust the catchability:
+Data$Data %>%
+    group_by(year) %>%
+    select(! ends_with("disc")) %>%
+    summarise(across(starts_with("Sp"), ~sum(.x, na.rm = TRUE))) %>%
+    mutate(wolffish = Sp5 + Sp6) %>%
+    summarise(across(starts_with("Sp"), mean),
+              wolffish = mean(wolffish))
 #### Perform the sample selection
 Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = Sim2$samp_prob, unit=Sim2$samp_unit, seed=Sim2$samp_seed, months = c(1:12))
 Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = 0.2, unit=Sim2$samp_unit, seed=2, months = c(1:12))
