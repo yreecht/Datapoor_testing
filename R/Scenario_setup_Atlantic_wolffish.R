@@ -10,7 +10,7 @@ Sim1 <- list(
 
   ### Habitat (depth) parameters. Very important as it controls how species are distributed in space, thus affects both
   ### the population dynamics and the vessel dynamics
-  Range_X = 1:40,           # the x-axis extent. the bigger, the more complex topography you can get at the cost of simulation time
+  Range_X = 1:20,           # the x-axis extent. the bigger, the more complex topography you can get at the cost of simulation time
   Range_Y = 1:40,           # the y-axis extent. the bigger, the more complex topography you can get at the cost of simulation time
   SD_O = 100,						    # SD of depth observation in space. the bigger, the more variable is the depth
   SpatialScale = 3,					# the spatial correlation range. The bigger, the more correlated are depth in space (patchy if small). N.B: Absolute value of high/low depends on the extent of x-axis and y-axis
@@ -29,8 +29,13 @@ Sim1 <- list(
   ## ##############################
 
   # price_fish = matrix(rep(c(1.5,1,-1,2,0),15), ncol=5, byrow=T),   # price per species across time (roughly in Us west coast)
-  price_fish = matrix(rep(c(1, 1, 1, 1, 1.5, 1.5), 15),
-                      ncol=Nsp, byrow = TRUE),   # random
+  price_fish = matrix(rep(c(13.33, # 2021 average (round, fresh), https://www.rafisklaget.no/statistikk-detaljer
+                            8.56,
+                            23.89,
+                            12.61,
+                            rep(12.16, 2)),
+                          15),
+                      ncol = Nsp, byrow = TRUE),   # random
 
   ## Fish habitat preference/movement control parameters
   func_mvt_dist = c(rep("Exp", Nsp)),					# shape of mvt p_function
@@ -38,9 +43,9 @@ Sim1 <- list(
   func_mvt_lat = c(rep("Unif", Nsp)),					# shape of range preference p_function (choice of Normal, Exp, Lognormal, Uniform)
 
   Fish_dist_par1 = matrix(c(5, 10, 6, 5, 3, 5, # mvt distance mean - their mobility within month1 only values >0
-                            5, 10, 6, 5, 3, 3, # month2   only values >0 Values for target species somewhat arbitrary.
-                            5, 10, 6, 5, 3, 3, # month3   only values >0
-                            5, 10, 6, 5, 3, 3, # month4   only values >0
+                            5, 12, 6, 5, 3, 3, # month2   only values >0 Values for target species somewhat arbitrary.
+                            5, 12, 6, 5, 3, 3, # month3   only values >0
+                            5, 12, 6, 5, 3, 3, # month4   only values >0
                             5, 10, 6, 5, 3, 3, # month5   only values >0
                             5, 10, 6, 5, 5, 5, # month6   only values >0 Increased mobility before (and after) reproduction
                             5, 10, 6, 5, 2, 2, # month7   only values >0
@@ -83,14 +88,14 @@ Sim1 <- list(
                                             1, 1, 1, 1, 1, 1, # month2
                                             1, 1, 1, 1, 1, 1, # month3
                                             1, 1, 1, 1, 1, 1, # month4
-                                            1, 1, 1, 1, 1, 1, # month5
-                                            1, 1, 1, 1, 1, 1, # month6
-                                            1, 1, 1, 1, 1, 1, # month7
-                                            1, 1, 1, 1, 1, 0.4, # month8
-                                            1, 1, 1, 1, 1, 0.4, # month9
-                                            1, 1, 1, 1, 1, 0.4, # month10
-                                            1, 1, 1, 1, 1, 0.4, # month11
-                                            1, 1, 1, 1, 1, 0.4),# month12
+                                            1, 0.8, 1, 1, 1, 1, # month5
+                                            1, 0.8, 1, 1, 1, 1, # month6
+                                            1, 0.8, 1, 1, 1, 1, # month7
+                                            1, 0.8, 1, 1, 1, 0.4, # month8
+                                            1, 0.8, 1, 1, 1, 0.4, # month9
+                                            1, 0.8, 1, 1, 1, 0.4, # month10
+                                            1, 0.8, 1, 1, 1, 0.4, # month11
+                                            1, 0.8, 1, 1, 1, 0.4),# month12
                                             nrow=12, ncol= Nsp, byrow = TRUE),
 
   ## Species Schaefer pop dyn parameters
@@ -101,17 +106,17 @@ Sim1 <- list(
   Pop_ratio_start = rep(0.5, Nsp),          # this is the "rough" abundance of the population at the start of the simulation
   r = c(0.175, 0.175, 0.2,
         0.02625, rep(0.14, 2)) / 12, # NEA Haddock, saithe, cod (NEA+coastal), golden redfish, and atlantic wolffish (1/2)x2
-  sigma_p = c(0.688, 0.45, 0.31,       # NS saithe as based on R table, unlike NEA.
-              1.198, rep(0.5, 2)),    # log-normal process error = recruitment to fishery
+  sigma_p = c(0.688, 0.45, 0.31,     # NS saithe as based on R table, unlike NEA.
+              1.198, rep(0.5, 2)),   # log-normal process error = recruitment to fishery
                                         # Arbitrary for wolffish
-  sigma_p_timing= c(4, 3, 2, 4, rep(8, 2)),               # when does recruitment happen?
-  fish.mvt = TRUE,				                        # whether animals redistribute annually based on habitat preference
+  sigma_p_timing= c(4, 3, 2, 4, rep(8, 2)), # when does recruitment happen?
+  fish.mvt = TRUE,                          # whether animals redistribute annually based on habitat preference
 
   ### Parameters controlling the vessel dynamics
   Nregion = c(2,2),         # nb of fishing regions for the fishermen (equal cut of grid along X and Y)
   Nvessels = 50,					  # nb vessels
   Tot_effort = 2000,
-  Tot_effort_year = seq(1000, 2000, length.out = 15),				# end year nb of effort
+  Tot_effort_year = seq(500, 2000, length.out = 15),				# end year nb of effort
   CV_effort = 0.2, 					# CV of effort around the yearly mean effort
   qq_original = c(0.05, 0.05, 0.05, 0.05, 1e-4, 1e-4) * 1e-3,			  # the average catchability coef by species for ALL vessels (does not mean anything. just a scaler)
   catch_trunc = c(rep(0, 6)),			  # truncate value if 1 otherwise keep continuous
@@ -131,7 +136,7 @@ Sim1 <- list(
   Discard_survival_rate2= rep(0, Nsp),   # the variance  survival rate (of a beta dsitribution). for a 100% survival rate write 0, for 0% discard rate write 0
 
   ### Parameter controlling the resampling procedure from the whole fleet
-  samp_prob = 0.2,             # this is the sampling probability
+  samp_prob = 0.05,            # this is the sampling probability
   samp_unit = "vessel",        # the samping unit: "vessel" or "fishing" (i.e. random sample from all fishing events)
   samp_seed = 123,             # the seed for reproducibility of the samples taken
   samp_mincutoff = 0,          # cut-off value to round values to 0
