@@ -25,6 +25,7 @@ source("R/Generate_scenario_data.r")  ## File that runs the simulation
 source("R/Functions.R")               ## File that include the main functions that are called in various part of the simulation
 source("R/Scenario_setup_Atlantic_wolffish.R") ## The main file to set-up the operating model i.e.
                                         # configuring the population parameters and the fleet dynamics
+source("R/utils.r")
 
 
 ## some ideas of setting
@@ -132,6 +133,7 @@ Data$Data %>%
     mutate(wolffish = Sp5 + Sp6) %>%
     summarise(across(starts_with("Sp"), mean),
               wolffish = mean(wolffish))
+
 #### Perform the sample selection
 Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = Sim2$samp_prob, unit=Sim2$samp_unit, seed=Sim2$samp_seed, months = c(1:12))
 Final_data <- sampling_select(data = Data$Data %>% as.data.frame(), percent = 0.2, unit=Sim2$samp_unit, seed=2, months = c(1:12))
@@ -229,10 +231,9 @@ pred <- pred %>% mutate(year_or = year, year = year_or + Year_adj)
 IA_gam <- pred %>% group_by(year) %>% summarize(IA = sum(pred, na.rm=T)) %>% mutate(Method="GAM", IA = IA/IA[1])
 ggplot(IA_gam, aes(x=year, y=IA)) + labs(x = "Year", y = "Index") +
     geom_line(lwd = 1, colour = "grey30")  + ggtitle("GAM") +
-    geom_line(data = data.frame(IA=true_index[-c(1:(Sim2$start_year-1)),
-                                              Which_sp]/true_index[Sim2$start_year+Year_adj,Which_sp],
-                                year = Sim2$start_year:Sim2$n_years),
-              col="red", size=2)+
+    geom_line(data = true_index_rescaled,
+              aes(x = Year, y = !!sym(Which_sp)),
+              col="red", size=2) +
     theme_bw()+ coord_cartesian(ylim=c(0,1.5))
 
 
@@ -247,10 +248,9 @@ pred <- pred %>% mutate(year_or = year, year = year_or + Year_adj)
 IA_rf <- pred %>% group_by(year) %>% summarize(IA = sum(pred)) %>% mutate(Method="RF", IA = IA/IA[1])
 ggplot(IA_rf, aes(x=year, y=IA)) + labs(x = "Year", y = "Index") +
     geom_line(lwd = 1, colour = "grey30")  + ggtitle("Random Forest") +
-    geom_line(data = data.frame(IA=true_index[-c(1:(Sim2$start_year-1)),
-                                              Which_sp]/true_index[Sim2$start_year+Year_adj,Which_sp],
-                                year =Sim2$start_year:Sim2$n_years),
-              col="red", size=2)+
+    geom_line(data = true_index_rescaled,
+              aes(x = Year, y = !!sym(Which_sp)),
+              col="red", size=2) +
     theme_bw()+ coord_cartesian(ylim=c(0,1.5))
 
 X11()
@@ -263,23 +263,19 @@ if (Which_sp != "Sp4")
 if (Which_sp == "Sp4")
     lm1 <- glmmTMB::glmmTMB(CPUE_trunc ~ 0 + as.factor(year) + as.factor(area) + ns(depth_scl) + (1|vessel_fct), #+ (1|year_area_fct)
                             data=Final_data_bycatch, family = compois(link = "log"))
-if (Which_sp == "Sp4")
-    lm1 <- glmmTMB::glmmTMB(CPUE_trunc ~ as.factor(year) + ns(depth_scl) + (1|vessel_fct), #+ (1|year_area_fct)
-                            data=Final_data_bycatch, family = nbinom2(link = "log"))
 
 sim <- DHARMa::simulateResiduals(lm1)
 plot(sim)
 predicted <- predict(lm1, newdata = qcs_grid, type="response", se.fit=F)
 pred <- qcs_grid
 pred$pred = predicted
-pred <- pred %>% mutate(year_or = year, year = year_or + Year_adj)
+pred <- pred %>% mutate(year_or = year, year = year_or + Year_adj - 1)
 IA_glmmTMB <- pred %>% group_by(year) %>% summarize(IA = sum(pred)) %>% mutate(Method="GlmmTMB", IA = IA/IA[1])
 ggplot(IA_glmmTMB, aes(x=year, y=IA)) + labs(x = "Year", y = "Index") +
     geom_line(lwd = 1, colour = "grey30")  + ggtitle("GLMMTMB") +
-    geom_line(data = data.frame(IA=true_index[-c(1:(Sim2$start_year-1)),
-                                              Which_sp]/true_index[Sim2$start_year+Year_adj,Which_sp],
-                                year =Sim2$start_year:Sim2$n_years),
-              col="red", size=2)+
+    geom_line(data = true_index_rescaled,
+              aes(x = Year, y = !!sym(Which_sp)),
+              col="red", size=2) +
     theme_bw()+ coord_cartesian(ylim=c(0,1.5))
 
 
@@ -294,10 +290,9 @@ pred$pred = predicted
 IA_gbm <- pred %>% group_by(year) %>% summarize(IA = sum(pred)) %>% mutate(Method="GBM", IA = IA/IA[1])
 ggplot(IA_gbm, aes(x=year, y=IA)) + labs(x = "Year", y = "Index") +
     geom_line(lwd = 1, colour = "grey30") + ggtitle("GBM") +
-    geom_line(data = data.frame(IA=true_index[-c(1:(Sim2$start_year-1)),
-                                              Which_sp]/true_index[Sim2$start_year+Year_adj,Which_sp],
-                                year =Sim2$start_year:Sim2$n_years),
-              col="red", size=2)+
+    geom_line(data = true_index_rescaled,
+              aes(x = Year, y = !!sym(Which_sp)),
+              col="red", size=2) +
     theme_bw()+ coord_cartesian(ylim=c(0,1.5))
 
 X11()
