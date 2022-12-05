@@ -9,18 +9,31 @@ R codes for simulation testing variety of data poor/rare species estimation meth
 <sup>\*</sup> Corresponding author: <kotaro.ono@hi.no><br>
 
 
-The purpose of this github repository is create a spatially explicit
-simulation framework to generate more "realistic" data from the fishery.
+The purpose of this github repository is to create a spatially explicit
+simulation framework to generate more "realistic" data from the fishery which 
+can then be used to test the performance of variety of estimation methods.
+The generated data could represent catches of targetted & non-targetted fish species 
+but also bycatch of seabird/marine mammals i.e. any type of catch event that the user is
+interested in. 
+
 The model simulates the abundance in space of k number of species with 
-each species having its own population and movement dynamics. 
-Fishery activity is based on ideal free distribution where fishers
-distribute their effort based on the expected revenue of the fishing grounds.
-The spatial extent of each fisher can be specify so that some might only fish 
+each species having its own population and movement dynamics both in space and time (season). 
+Fishery activity is based on theory of ideal free distribution where fishers
+distribute their effort based on the expected revenue of the fishing grounds 8with some randomness).
+The spatial extent of each fisher can be specified so that some might only fish 
 in certain area of the simulated space. 
 Primary sampling unit is then either a vessel or a haul and we can specify 
 different level of sampling intensity depending on the scenario examined.
+
+To configure the simulation to best match each study case, users are required to 
+search & provide the necessary information on the species population characteristics 
+(ref the excel help file to guide in the search of the parameter information) and fishery 
+characteristics. Once the intial condition is set,post-hoc adjustments need to be made to refine 
+the model (e.g. price and catchability values) to match the catch composition observed in the data,
+scale of the catches, and the amount of zero-inflation in the data per species.
+
 In this repository, you will find the necessary R- and C++ code to run the 
-simulation, and fit a variey of data poor models.
+simulation, and test a variey of data poor estimation models.
 
 ## Code
 
