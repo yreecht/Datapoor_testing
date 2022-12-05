@@ -39,13 +39,39 @@ Sim2 <- Sim1
 
 RFoptions(install="install", LOCAL_ONLY = TRUE)
 
-## Running the simulation model with the user-specified configurations
+##########################################################################################
+#### Step1: Running the simulation model with the user-specified configurations from "Scenario_setup.R" file
+##########################################################################################
 system.time(
 	  Data <- Generate_scenario_data(Sim_Settings = Sim2, seed_input=12)
 )
 
 
-Data$Data <- as.data.frame(Data$Data)
+
+##########################################################################################
+#### Step2: If the above model runs, then we need to adjust its parameters to match the pattern observed in the real data
+##########################################################################################
+
+	Data$Data <- as.data.frame(Data$Data)
+
+	### Step 2.1: Look at the range of catch values for each species
+	### a/ adjust "qq_original" for the main species to scale up and down the catch
+	### b/ If you simulated any discarded species via the discard rate specification, once the catch scale is correct,
+	###    adjust "Discard_rate_beta1" and "Discard_rate_beta2" to adjust the scale of the discard
+	apply(Data$Data, 2, range)
+
+	### Step 2.2: Look at the amount of zero in the catch
+	### a/ adjust tweedie distribution "phi" parameter
+	apply(Data$Data, 2, function(x) sum(x==0)/length(x))
+
+	### Step 2.3: Look at the catch composition
+	### For this step, run a cluster analysis and compare the obtained clusters' composition between the real data and the generated data)
+	Comps_data <- Data$Data %>% dplyr::select(starts_with("Sp"))
+	library(cluster)
+	clusters <- pam(Comps_data, k=3)
+  clusters$medoids
+
+
 apply(Data$Data, 2, range)
 table(Data$Data$vessel)
 with(Data$Data, table(year, vessel));
@@ -56,34 +82,12 @@ ggplot(Data$bathym) + geom_raster(aes(x=X, y=Y, fill=depth)) + scale_fill_viridi
 ## Simulated depth distribution
 ## ggplot(Data$Biomass) + geom_raster(aes(x=X, y=Y, fill=Sp1)) + facet_wrap(~year) + scale_fill_viridis_c()
 
-X11()
-## Simulated effort distribution in space
-ggplot(data = Data$Data %>% filter(year == 10, month==9)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
-    geom_point(aes(x=X, y=Y)) +
-    coord_fixed()
+## X11()
+## ## Simulated effort distribution in space
+## ggplot(data = Data$Data %>% filter(year == 10, month==9)) + geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) + scale_fill_viridis_c() +
+##     geom_point(aes(x=X, y=Y)) +
+##     coord_fixed()
 
-ggY10 <- sapply(1:12,
-                function(mo)
-         {
-             ggtmp <- ggplot(data = Data$Data %>% filter(year == 10, month==mo)) +
-                 geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) +
-                 scale_fill_viridis_c() +
-                 geom_point(aes(x=X, y=Y))+
-                 coord_fixed()
-             ggsave(ggtmp, file = file.path("Results", paste0("Fishing_y10_mo", mo, ".png")))
-         })
-
-
-ggtmp <- ggplot(data = Data$Data %>% filter(year == 10)) +
-    geom_raster(data=Data$bathym, aes(x=X, y=Y, fill=depth)) +
-    scale_fill_viridis_c() +
-    geom_point(aes(x=X, y=Y))+
-    facet_wrap(~month, labeller = label_both, ncol = 6) +
-    coord_fixed()
-ggsave(ggtmp, file = file.path("Results", paste0("Fishing_y10.png")),
-       width = 7, height = 4, dpi = 300, scale = 1.5)
-
-dim(Data$Biomass)
 
 #### Calculate the true index
 X11()
