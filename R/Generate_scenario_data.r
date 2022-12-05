@@ -42,7 +42,15 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 		for (sp in 1:Sim_Settings$n_species) fields::image.plot(Sim_Settings$Range_X, Sim_Settings$Range_Y, matrix(Pop_adult[,sp],length(Sim_Settings$Range_X),length(Sim_Settings$Range_Y)))
 	}
 
-	Biomass <- array(NA, dim=c(Sim_Settings$n_years, 12, nrow(data.bathym), Sim_Settings$n_species))
+  Biomass <- array(NA, dim=c(year = Sim_Settings$n_years,
+                             month = 12,
+                             cell = nrow(data.bathym),
+                             species = Sim_Settings$n_species))
+  ## For later easier conversion to long format:
+  dimnames(Biomass) <- list(year = NULL,
+                            month = NULL,
+                            cell = NULL,
+                            species = paste0("Sp", 1:6))
 	Biomass[1,1,,] <- t(apply(Pop_adult,1,function(x) x*Sim_Settings$Pop_ratio_start))
 	Biomass[1,1,,] <- apply(Biomass[1,1,,], 2,function(x) replace(x, which(x<=0), 0))
 
