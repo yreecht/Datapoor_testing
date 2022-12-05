@@ -13,7 +13,8 @@ Sim1 <- list(
   Range_X = 1:20,           # the x-axis extent. the bigger, the more complex topography you can get at the cost of simulation time
   Range_Y = 1:40,           # the y-axis extent. the bigger, the more complex topography you can get at the cost of simulation time
   SD_O = 100,						    # SD of depth observation in space. the bigger, the more variable is the depth
-  SpatialScale = 3,					# the spatial correlation range. The bigger, the more correlated are depth in space (patchy if small). N.B: Absolute value of high/low depends on the extent of x-axis and y-axis
+  SpatialScale = 3,					# the spatial correlation range. The bigger, the more correlated are depth in space (patchy if small).
+                            # N.B: Absolute value of high/low depends on the extent of x-axis and y-axis
   year.depth.restriction = 1000,	# If MPA, then years when MPA implemented (default > n_years)
   depth.restriction = c(50,150),	# location of MPA
 
@@ -118,11 +119,11 @@ Sim1 <- list(
   Tot_effort = 1000,				# end year nb of effort
   Tot_effort_year = seq(1000, 1000, length.out = 15),
   CV_effort = 0.2, 					# CV of effort around the yearly mean effort
-  qq_original = c(0.0035, 0.0275, 0.0245,
-                  0.0165, rep(0.00158 / 2, 2)) * 1e-3, # the average catchability coef by species for ALL vessels
+  qq_original = c(0.00348, 0.0251, 0.0243,
+                  0.0172, rep(0.00157 / 2, 2)) * 1e-3, # the average catchability coef by species for ALL vessels
                                         # (does not mean anything. just a scaler)
                                         # Estimated to approximately match 2021 catches with an arbitrary 1000 effort
-  catch_trunc = c(rep(0, 6)),			  # truncate value if 1 otherwise keep continuous
+  catch_trunc = c(rep(0, 6)),           # truncate value if 1 otherwise keep continuous
   CV_vessel = 0.1,					# the between vessel variability in mean catchability
   vessel_seeds = 10,        # this creates heterogeneity in the sampled vessels
   Effort_alloc_month = c(5,4,3,2,1,1,1,2,3,4,5,5),  # it is rescaled to sum to 1
