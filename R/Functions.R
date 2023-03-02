@@ -217,4 +217,35 @@ Convert_grid_coordinates <- function(GridID=NULL, X=NULL, Y=NULL, Settings){
   }
 }
 
+##' Convenience function to aggregate parameters/status (carrying capacity, biomass,...)
+##' for species simulated through several groups.
+##'
+##' Internally used to calculate common growth rates for species simulated as several groups
+##' (typically for separate simulations of males and females).
+##' @title Function \code{group_cols()}
+##' @param mat A matrix with groups in column.
+##' @param groups Vector of groups (same value for grouped columns), with as many elements as columns in \code{mat}.
+##' @param FUN The aggregation function (sum by default).
+##' @return A matrix of the same dimensions as \code{mat}, where columns of common groups are summed (by default).
+##' @author Yves Reecht
+group_cols <- function(mat, groups, FUN = sum)
+{
+    ## Purpose:
+    ## ----------------------------------------------------------------------
+    ## Arguments:
+    ## ----------------------------------------------------------------------
+    ## Author: Yves Reecht, Date:  2 Mar 2023, 12:38
+    require(dplyr)
 
+    res <- sapply(seq(length.out = ncol(mat)),
+                  function(i, mat, groups, fun)
+           {
+               apply(mat[ , groups %in% groups[i], drop = FALSE],
+                     1, FUN = fun)
+           }, mat = mat, groups = groups, fun = FUN, simplify = FALSE) %>%
+        bind_cols(.name_repair = "unique") %>% as.matrix()
+
+    colnames(res) <- colnames(mat)
+
+    return(res)
+}

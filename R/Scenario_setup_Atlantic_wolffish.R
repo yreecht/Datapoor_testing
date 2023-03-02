@@ -20,6 +20,7 @@ Sim1 <- list(
 
   ### Species parameters
   n_species  = Nsp, # 4 targets and 2 for M and F Atlantic wolffish (different seasonality).
+  sp_groups = c(1, 2, 3, 4, 5, 5), ## default seq(length.out = Nsp)
   ## ##############################
   ## col1: haddock
   ## col2: saithe
