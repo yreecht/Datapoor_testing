@@ -486,8 +486,10 @@
 Detect_simulate_variogram <- function(inputdata=data.bathym,
                                       outputdata=data.bathym1,
                                       response_var = "depth",
-                                      replace.negative.by = NULL)
+                                      replace.negative.by = NULL,
+                                      seed = 1)
 {
+    set.seed(seed)
     inputdata$resp <- inputdata[, response_var]
     coordinates(inputdata) <- ~ X + Y
     library(automap)
@@ -516,8 +518,15 @@ Detect_simulate_variogram <- function(inputdata=data.bathym,
         xyz[xyz[ , "resp"] < 0 , "resp"] <- replace.negative.by
     }
     colnames(xyz) <- c("X", "Y", "depth")
+    xyz <- data.frame(ID = 1:nrow(xyz), xyz)
     return(xyz)
 }
+
+
+
+
+
+
 
 range2logNparams <- function(mean.depth, min.depth, max.depth, prob = 0.95)
 {
@@ -588,6 +597,43 @@ Find_tweedie <- function(haulData, SPP1="SPP1_d", link.power=0, p.vec=seq(1.01, 
   phi <- out$phi.max; phi
 
   return(data.frame(xi=xi, phi=phi))
+}
+
+##' .. content for \description{} (no empty lines) ..
+##' scaling the true indices with reference year (value at 1)
+##' on start_year
+##' .. content for \details{} ..
+##' @title
+##' @param index True index data.frame with species in columns and years in rows
+##' @param start_year Reference year (usually the year where data collection
+##'                   starts, for comparison with the index)
+##' @param truncate Logical, whether to truncate years before start_year.
+##' @return Scaled true index data.frame.
+##' @author Yves Reecht
+rescaleTrueIndex <- function(index, start_year = 1, truncate = TRUE)
+{
+    ## Purpose: scaling the true indices with reference year (value at 1)
+    ##          on start_year
+    ## ----------------------------------------------------------------------
+    ## Arguments: index: data.frame of the true index
+    ## ----------------------------------------------------------------------
+    ## Author: Yves Reecht, Date: 14 Oct 2022, 09:35
+
+    ## Start_year's index set to one for all species:
+    res <- sweep(x = as.matrix(index),
+                 MARGIN = 2,
+                 STATS = as.matrix(index[start_year, ]),
+                 FUN = "/")
+
+    res <- as.data.frame(res)
+
+    ## Truncate if relevant:
+    if (isTRUE(truncate))
+    {
+        res <- tail(res, -(start_year - 1))
+    }
+
+    return(res)
 }
 
 

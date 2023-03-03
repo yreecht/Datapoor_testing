@@ -141,17 +141,21 @@ Stable_pop_dist <- function(Mvt_mat_adult, B0, Range_X, Range_Y){
 ##'
 ##'
 
-sampling_select <- function(data, percent=0.1, unit="vessel", seed = 123, months = c(1,3,6,8,10)){
+sampling_select <- function(data, PSU="trip", SSU="vessel", PSU_prob=0.5, SSU_prob=0.1, seed = 123,
+                            sampling_months = c(1,3,6,8,10),
+                            sampling_startyear = 1, SSU_change_interval = 5){
   set.seed(seed)
-  if (unit == "vessel") {
-    vessel_sel = sample(unique(data$vessel), floor(length(unique(data$vessel))*percent))
-    dat <- data %>% filter(month %in% months, vessel %in% vessel_sel)
-  }
-  if (unit == "fishing") {
-    dat <- dat %>% filter(month %in% months)
-    obs_sel = sample(1:nrow(dat), floor(nrow(dat)*percent))
-    dat <- dat[obs_sel,]
-  }
+  if (!PSU %in% names(data)) {print("PSU variable is not available in the simulated data - check spelling"); break()}
+  if (!SSU %in% names(data)) {print("SSU variable is not available in the simulated data - check spelling"); break()}
+  dat <- NULL
+  dat <- data %>% filter(year >= sampling_startyear, month %in% sampling_months) %>%
+    mutate(sample_strata = cut_width(year, SSU_change_interval)) %>%
+    group_by(sample_strata) %>% mutate(n_vessel = n_distinct(eval(parse(text=SSU)))) %>%
+    filter(eval(parse(text=SSU)) %in% sample(unique(eval(parse(text=SSU))), size=ceiling(SSU_prob*n_vessel))) %>%
+    ungroup() %>% group_by(year, month, eval(parse(text=SSU))) %>% mutate(n_trips = n_distinct(eval(parse(text=PSU)))) %>%
+    mutate(trip_selected = as.integer(eval(parse(text=PSU)) %in% sample(unique(eval(parse(text=PSU))), size=ceiling(PSU_prob*n_trips)))) %>%
+    filter(trip_selected == 1) %>% ungroup()
+
   return(dat)
 }
 
