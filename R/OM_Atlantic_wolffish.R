@@ -88,9 +88,12 @@ ggplot(Data$bathym) + geom_raster(aes(x=X, y=Y, fill=depth)) + scale_fill_viridi
 ##     geom_point(aes(x=X, y=Y)) +
 ##     coord_fixed()
 
+ggsave("./Results/habitat.png")
+
 
 #### Calculate the true index
-X11()
+## X11()
+png(filename = "./Results/index.png")
 Average_monthly_biomass <- apply(Data$Biomass, c(1,2,4), sum)
 plot(1:Sim2$n_years, Average_monthly_biomass[,1,1]/Average_monthly_biomass[1,1,1], type="l", ylim=c(0,1.5), col = "orange")
 lines(1:Sim2$n_years, Average_monthly_biomass[,1,2]/Average_monthly_biomass[1,1,2], col = "red")
@@ -98,7 +101,7 @@ lines(1:Sim2$n_years, Average_monthly_biomass[,1,3]/Average_monthly_biomass[1,1,
 lines(1:Sim2$n_years, Average_monthly_biomass[,1,4]/Average_monthly_biomass[1,1,4], col = "green")
 lines(1:Sim2$n_years, Average_monthly_biomass[,1,5]/Average_monthly_biomass[1,1,5], col = "black", lwd = 2, lty = 1)
 lines(1:Sim2$n_years, Average_monthly_biomass[,1,6]/Average_monthly_biomass[1,1,6], col = "black", lwd = 2, lty = 2)
-
+dev.off()
 
 true_index <- apply(Average_monthly_biomass[,1,], 2, function(x) x/x[1]) %>% as.data.frame()
 colnames(true_index) <- paste0("Sp", 1:Sim2$n_species)
