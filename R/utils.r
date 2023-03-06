@@ -486,8 +486,10 @@
 Detect_simulate_variogram <- function(inputdata=data.bathym,
                                       outputdata=data.bathym1,
                                       response_var = "depth",
-                                      replace.negative.by = NULL)
+                                      replace.negative.by = NULL,
+                                      seed = 1)
 {
+    set.seed(seed)
     inputdata$resp <- inputdata[, response_var]
     coordinates(inputdata) <- ~ X + Y
     library(automap)
@@ -516,8 +518,15 @@ Detect_simulate_variogram <- function(inputdata=data.bathym,
         xyz[xyz[ , "resp"] < 0 , "resp"] <- replace.negative.by
     }
     colnames(xyz) <- c("X", "Y", "depth")
+    xyz <- data.frame(ID = 1:nrow(xyz), xyz)
     return(xyz)
 }
+
+
+
+
+
+
 
 range2logNparams <- function(mean.depth, min.depth, max.depth, prob = 0.95)
 {
