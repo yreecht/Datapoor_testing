@@ -68,6 +68,17 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 	Biomass[1,1,,] <- t(apply(Pop_adult,1,function(x) x*Sim_Settings$Pop_ratio_start))
 	Biomass[1,1,,] <- apply(Biomass[1,1,,], 2,function(x) replace(x, which(x<=0), 0))
 
+  ## By default rates calculated for each "species" on its own... But Sim_Settings$sp_groups can
+  ##   be used to define groups sharing carrying capacity and biomass to calculate growth rates
+  ##   (e.g. for separate simulations of males and females of a same species):
+  if (is.null(Sim_Settings$sp_groups))
+  {
+      Sim_Settings$sp_groups <- seq(length.out = Sim_Settings$n_species)
+  }
+
+  ## Local carrying capacity:
+  B0_group <- suppressMessages(group_cols(mat = Biomass[1,1,,], groups = Sim_Settings$sp_groups))
+
 	### 2. Structuring the vessel dynamics
 
 	## generate total effort by year & month (total effort will be randomly sampled with log normal error around a logistic type function)
@@ -191,15 +202,17 @@ Generate_scenario_data <- function(Sim_Settings, seed_input = 123, parallel = FA
 
   		Catch_area_year[iyear,month,,] <- Catch_year_area_mat
 
+      Biomass_group_mo <- suppressMessages(group_cols(mat = Biomass[iyear,month,,], groups = Sim_Settings$sp_groups))
+
      	### Then update the population = growth & catch, then at a specific month, we have the process error (e.g. rec dev)
   		if (month < 12){
-    		temp <- (Biomass[iyear,month,,]+Sim_Settings$r*Biomass[iyear,month,,]*(1-Biomass[iyear,month,,]/Biomass[1,1,,])-Catch_area_year[iyear,month,,])
+    		temp <- (Biomass[iyear,month,,]+Sim_Settings$r*Biomass[iyear,month,,]*(1-Biomass_group_mo/B0_group)-Catch_area_year[iyear,month,,])
     		temp <- apply(temp,2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
     		temp <- sapply(1:n_species, function(x) {if (month %in% Sim_Settings$sigma_p_timing[x]) out <- sapply(seq_along(temp[,x]), function(y) rlnorm(1, log(temp[y,x])- Sim_Settings$sigma_p[x]^2/2, Sim_Settings$sigma_p[x])) else temp[,x]})
     		Biomass[iyear,month+1,,] <- apply(temp,2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
   		}
   		if (month == 12 & iyear < Sim_Settings$n_years){
-    		temp <- Biomass[iyear,month,,]+Sim_Settings$r*Biomass[iyear,month,,]*(1-Biomass[iyear,month,,]/Biomass[1,1,,])-Catch_area_year[iyear,month,,]
+    		temp <- Biomass[iyear,month,,]+Sim_Settings$r*Biomass[iyear,month,,]*(1-Biomass_group_mo/B0_group)-Catch_area_year[iyear,month,,]
     		temp <- apply(temp,2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
     		temp <- sapply(1:n_species, function(x) {if (month %in% Sim_Settings$sigma_p_timing[x]) out <- sapply(seq_along(temp[,x]), function(y) rlnorm(1, log(temp[y,x])- Sim_Settings$sigma_p[x]^2/2, Sim_Settings$sigma_p[x])) else temp[,x]})
     		Biomass[iyear+1,1,,] <- apply(temp,2,function(x) replace(x, which(is.na(x)==TRUE | x<=0),0))
