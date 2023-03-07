@@ -50,12 +50,14 @@ system.time(
 		catch_simul = Data$Data %>% dplyr::select(Sim1$species_name) 
 		init_catchability = Sim1$qq_original * apply(catch_data,2,mean)/apply(catch_simul,2,mean)  # original guess based on adjusting the input catchability with the data
 		best_input_params <- Search_opt_fishing(init=c(init_catchability, Sim1$xi), 
-		weight_i=10, 
+		weight_i=1, # this is the weight between matching the catc distribution vs. matching the amount of zero
 		Sim_setting_i=Sim1, focus_species_i="landed", catch_quantile_i = seq(0.05,0.95,by=0.05), 
 		catch_data_i= catch_data)	
 	
 		## rerun simulation with the optimized values
-			# Sim1$....  to be completed once testing is possible...
+			Sim1$qq_original = best_input_params$solution[1:Sim1$Nsp] 
+			Sim1$xi = best_input_params$solution[(Sim1$Nsp+1):(2*Sim1$Nsp)]                # power of the tweedie distribution to be adjusted
+			# Sim1$....  best_input_params$solution
 			Data <- Generate_scenario_data(Sim_Settings = Sim1, seed_input=12)
 			Data$Data <- as.data.frame(Data$Data)
 			Data$Data <- Data$Data %>% mutate(trip = 1:nrow(.))
