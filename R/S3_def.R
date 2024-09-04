@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 
 ### File: S3_def.R
-### Time-stamp: <2023-03-07 14:31:25 a23579>
+### Time-stamp: <2023-08-10 12:24:02 a23579>
 ###
 ### Created: 07/03/2023	10:10:02
 ### Author: Yves Reecht
@@ -312,7 +312,7 @@ new_simSettings <- function(n_species = 4,
     {
         parm <- dots$parm
     }else{
-        parm <- <def>
+        parm <- "<def>"
     }
 
     if ("Fish_depth_par1" %in% names(dots))
